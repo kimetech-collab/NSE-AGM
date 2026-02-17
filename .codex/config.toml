@@ -1,0 +1,12 @@
+[mcp_servers.laravel-boost]
+command = "php"
+args = ["artisan", "boost:mcp"]
+cwd = "/Users/apple/Desktop/Developments/nse_portal"
+
+[mcp_servers.herd]
+command = "php"
+args = ["/Applications/Herd.app/Contents/Resources/herd-mcp.phar"]
+cwd = "/Users/apple/Desktop/Developments/nse_portal"
+
+[mcp_servers.herd.env]
+SITE_PATH = "/Users/apple/Desktop/Developments/nse_portal"
