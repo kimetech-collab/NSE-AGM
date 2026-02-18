@@ -7,6 +7,11 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up()
     {
+        // Drop the old table if it exists and recreate with new schema
+        if (Schema::hasTable('audit_logs')) {
+            Schema::dropIfExists('audit_logs');
+        }
+
         Schema::create('audit_logs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('actor_id')->nullable()->index();

@@ -41,4 +41,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','verified'])->group(f
     // Finance
     Route::get('finance', [\App\Http\Controllers\Admin\FinanceController::class, 'index'])->name('finance.index');
     Route::post('finance/refund/{id}', [\App\Http\Controllers\Admin\FinanceController::class, 'refund'])->name('finance.refund');
+
+    // Audit Logs
+    Route::get('audit', [\App\Http\Controllers\Admin\AuditController::class, 'index'])->name('audit.index');
+    Route::get('audit/{auditLog}', [\App\Http\Controllers\Admin\AuditController::class, 'show'])->name('audit.show');
+    Route::get('audit/export', [\App\Http\Controllers\Admin\AuditController::class, 'export'])->name('audit.export');
+    Route::get('audit-trail/{entityType}/{entityId}', [\App\Http\Controllers\Admin\AuditController::class, 'trail'])->name('audit.trail');
 });

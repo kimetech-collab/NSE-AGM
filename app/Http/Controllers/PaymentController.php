@@ -61,11 +61,17 @@ class PaymentController extends Controller
 
             if ($paystackResponse->successful() && ($paystackResponse['status'] ?? false)) {
                 $checkout_url = $paystackResponse['data']['authorization_url'] ?? null;
-                $paystack_transaction_id = $paystackResponse['data']['id'] ?? null;
                 
-                if ($checkout_url && $paystack_transaction_id) {
-                    // Update transaction with Paystack transaction ID
-                    $transaction->update(['paystack_transaction_id' => $paystack_transaction_id]);
+                if ($checkout_url) {
+                    // Keep an allowed status value until callback/webhook confirms success.
+                    $transaction->update([
+                        'status' => 'pending',
+                    ]);
+                    
+                    \Log::info('Payment initialized successfully', [
+                        'reference' => $reference,
+                        'registration_id' => $registration->id,
+                    ]);
                     
                     return response()->json([
                         'success' => true,
