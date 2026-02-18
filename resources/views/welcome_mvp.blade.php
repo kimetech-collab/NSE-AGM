@@ -19,7 +19,7 @@
             <div class="bg-white p-6 rounded-lg shadow">
                 <h2 class="text-2xl font-bold mb-3">Register for Event</h2>
                 <p class="text-gray-600 mb-4">NSE member or participant registration with 3 steps.</p>
-                <a href="{{ route('register.show') }}" class="inline-block px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">Start Registration</a>
+                <a href="{{ route('register') }}" class="inline-block px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">Start Registration</a>
             </div>
 
             <div class="bg-white p-6 rounded-lg shadow">
@@ -36,7 +36,7 @@
         <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
             <h3 class="font-bold mb-3">Quick Links & Notes</h3>
             <ul class="space-y-2 text-sm">
-                <li>📋 <a href="{{ route('register.show') }}" class="text-blue-600 underline">Start a registration flow</a> — 3 steps with OTP verification</li>
+                <li>📋 <a href="{{ route('register') }}" class="text-blue-600 underline">Start a registration flow</a> — 3 steps with OTP verification</li>
                 <li>🎫 View ticket after payment (QR token issued)</li>
                 <li>📊 <a href="{{ route('admin.dashboard') }}" class="text-blue-600 underline">Admin dashboard</a> (auth required) shows KPI counts cached 1 min</li>
                 <li>💳 Paystack webhook endpoint: <code class="bg-white px-2 py-1 rounded text-xs">/paystack/webhook</code> (idempotent, signed)</li>

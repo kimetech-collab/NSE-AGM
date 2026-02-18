@@ -20,6 +20,12 @@
             </div>
         @endif
 
+        @if (session('success'))
+            <div class="mb-4 p-3 bg-green-100 text-green-700 rounded">
+                {{ session('success') }}
+            </div>
+        @endif
+
         <p class="text-gray-600 mb-4">Enter the 6-digit OTP sent to <strong>{{ $registration->email }}</strong></p>
         
         <form method="POST" action="{{ route('register.verify') }}">
@@ -34,6 +40,14 @@
             </button>
         </form>
 
+        <form method="POST" action="{{ route('register.verify.resend') }}" class="mt-3">
+            @csrf
+            <input type="hidden" name="registration_id" value="{{ $registration->id }}" />
+            <button type="submit" class="text-sm text-blue-700 underline">
+                Resend OTP
+            </button>
+        </form>
+
         @if (session('otp'))
             <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded text-sm">
                 <p><strong>Testing:</strong> OTP for this session is <code class="bg-white px-2 py-1">{{ session('otp') }}</code></p>
@@ -41,4 +55,3 @@
         @endif
     </div>
 @endsection
-

@@ -78,4 +78,42 @@ class RegistrationTest extends TestCase
 
         $this->assertNotNull(Registration::find($registration->id)->email_verified_at);
     }
+
+    public function test_user_can_resend_otp()
+    {
+        Mail::fake();
+
+        $payload = [
+            'name' => 'Resend User',
+            'email' => 'resend@example.com',
+            'is_member' => false,
+            'pricing_item_id' => 1,
+        ];
+
+        $this->post('/register', $payload)->assertStatus(302);
+
+        $registration = Registration::where('email', 'resend@example.com')->first();
+        $this->assertNotNull($registration);
+
+        $firstOtp = cache()->get('registration_otp_'.$registration->id);
+        $this->assertNotNull($firstOtp);
+
+        $response = $this->post('/email/verify/resend', [
+            'registration_id' => $registration->id,
+        ]);
+
+        $response->assertStatus(302);
+        $response->assertSessionHas('success');
+
+        $secondOtp = cache()->get('registration_otp_'.$registration->id);
+        $this->assertNotNull($secondOtp);
+        $this->assertNotEquals($firstOtp, $secondOtp);
+
+        Mail::assertQueued(RegistrationOtp::class, 2);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'registration.otp_resent',
+            'entity_type' => 'Registration',
+            'entity_id' => $registration->id,
+        ]);
+    }
 }

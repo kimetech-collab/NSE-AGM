@@ -21,7 +21,10 @@ class AuditLoggingTest extends TestCase
     {
         parent::setUp();
         $this->auditService = app(AuditService::class);
-        $this->user = User::factory()->create();
+        $this->user = User::factory()->create([
+            'email_verified_at' => now(),
+            'two_factor_confirmed_at' => now(),
+        ]);
     }
 
     public function test_audit_log_can_be_created()
@@ -256,7 +259,10 @@ class AuditLoggingTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        $user2 = User::factory()->create();
+        $user2 = User::factory()->create([
+            'email_verified_at' => now(),
+            'two_factor_confirmed_at' => now(),
+        ]);
 
         // Create logs with different actors
         $this->actingAs($this->user);
@@ -281,7 +287,7 @@ class AuditLoggingTest extends TestCase
         $response = $this->get(route('admin.audit.export'));
 
         $response->assertStatus(200);
-        $response->assertHeader('Content-Type', 'text/csv');
+        $this->assertStringContainsString('text/csv', (string) $response->headers->get('Content-Type'));
         $response->assertHeader('Content-Disposition');
     }
 }

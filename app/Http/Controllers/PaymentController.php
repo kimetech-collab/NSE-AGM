@@ -7,6 +7,7 @@ use App\Models\Registration;
 use App\Models\PaymentTransaction;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
+use App\Services\PaymentService;
 
 class PaymentController extends Controller
 {
@@ -113,35 +114,20 @@ class PaymentController extends Controller
             return view('payment-error', ['message' => 'No reference provided.']);
         }
 
-        // Verify transaction with Paystack API
-        $paystackSecret = config('services.paystack.secret') ?? env('PAYSTACK_SECRET');
-        $response = Http::timeout(10)
-            ->withHeaders([
-                'Authorization' => 'Bearer ' . $paystackSecret,
-            ])
-            ->get('https://api.paystack.co/transaction/verify/' . $reference);
+        // Webhook is source of truth; callback verifies as fallback if webhook delayed.
+        $transaction = PaymentTransaction::where('provider_reference', $reference)->first();
 
-        if ($response->successful() && $response['status'] && $response['data']['status'] === 'success') {
-            // Find transaction and registration to mark as paid
-            $transaction = PaymentTransaction::where('provider_reference', $reference)->first();
-            if ($transaction && $transaction->registration) {
-                $paystack_transaction_id = $response['data']['id'] ?? null;
-                $update_data = ['status' => 'success'];
-                
-                if ($paystack_transaction_id) {
-                    $update_data['paystack_transaction_id'] = $paystack_transaction_id;
-                }
-                
-                $transaction->update($update_data);
-                $transaction->registration->update([
-                    'payment_status' => 'paid',
-                    'ticket_token' => hash('sha256', $reference . $transaction->registration->id),
-                ]);
-                return redirect('/ticket/' . $transaction->registration->ticket_token)
-                    ->with('success', 'Payment successful! Your ticket is ready.');
-            }
+        if ($transaction && $transaction->registration && $transaction->status === 'success') {
+            return redirect('/ticket/' . $transaction->registration->ticket_token)
+                ->with('success', 'Payment successful! Your ticket is ready.');
         }
 
-        return view('payment-error', ['message' => 'Payment verification failed.']);
+        $verify = app(PaymentService::class)->verifyReference($reference);
+        if (($verify['ok'] ?? false) && ! empty($verify['registration']) && $verify['registration']->ticket_token) {
+            return redirect('/ticket/' . $verify['registration']->ticket_token)
+                ->with('success', 'Payment successful! Your ticket is ready.');
+        }
+
+        return view('payment-pending', ['reference' => $reference]);
     }
 }

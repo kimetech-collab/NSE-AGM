@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Carbon\Carbon;
+use Carbon\CarbonInterface;
 
 class AuditLog extends Model
 {
@@ -155,7 +155,7 @@ class AuditLog extends Model
     /**
      * Scope: Filter by date range
      */
-    public function scopeByDateRange($query, Carbon $from, Carbon $to)
+    public function scopeByDateRange($query, CarbonInterface $from, CarbonInterface $to)
     {
         return $query->whereBetween('created_at', [$from, $to]);
     }

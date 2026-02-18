@@ -9,7 +9,36 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    /* NSE Portal: Inter replaces Instrument Sans for screen readability */
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* ─── NSE Green Palette ─────────────────────────────── */
+    --color-nse-green-900: #1A4A1A;
+    --color-nse-green-700: #2B6B2B;
+    --color-nse-green-500: #3D8B3D;
+    --color-nse-green-50:  #EBF5EB;
+
+    /* ─── NSE Gold Palette ──────────────────────────────── */
+    --color-nse-gold-700:  #9B7415;
+    --color-nse-gold-500:  #C8971F;
+    --color-nse-gold-50:   #FDF3DC;
+
+    /* ─── NSE Neutral Palette (warm-grey) ───────────────── */
+    --color-nse-neutral-900: #1C1C1C;
+    --color-nse-neutral-600: #555F54;
+    --color-nse-neutral-400: #8A948A;
+    --color-nse-neutral-200: #DEE2DD;
+    --color-nse-neutral-50:  #F7F8F6;
+
+    /* ─── System State Colors ───────────────────────────── */
+    --color-nse-success:     #2E7D32;
+    --color-nse-success-bg:  #E8F5E9;
+    --color-nse-warning:     #F57F17;
+    --color-nse-warning-bg:  #FFF8E1;
+    --color-nse-error:       #C62828;
+    --color-nse-error-bg:    #FFEBEE;
+    --color-nse-info:        #1565C0;
+    --color-nse-info-bg:     #E3F2FD;
 
     --color-zinc-50: #fafafa;
     --color-zinc-100: #f5f5f5;
@@ -45,6 +74,9 @@
     ::file-selector-button {
         border-color: var(--color-gray-200, currentColor);
     }
+
+    /* Hide Alpine x-cloak elements until Alpine.js initializes */
+    [x-cloak] { display: none !important; }
 }
 
 [data-flux-field]:not(ui-radio, ui-checkbox) {

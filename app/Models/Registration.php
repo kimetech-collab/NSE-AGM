@@ -25,4 +25,9 @@ class Registration extends Model
     {
         return $this->hasMany(PaymentTransaction::class);
     }
+
+    public function qrScans()
+    {
+        return $this->hasMany(QrScan::class);
+    }
 }

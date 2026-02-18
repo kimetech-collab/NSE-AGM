@@ -4,10 +4,36 @@ namespace Tests\Feature;
 
 use Tests\TestCase;
 use App\Models\Registration;
+use App\Models\PricingVersion;
+use App\Models\PricingItem;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 
 class EndToEndFlowTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $pv = PricingVersion::create(['version_name' => 'mvp']);
+
+        PricingItem::create([
+            'pricing_version_id' => $pv->id,
+            'name' => 'Early Bird',
+            'price_cents' => 1000000,
+            'currency' => 'NGN',
+        ]);
+
+        PricingItem::create([
+            'pricing_version_id' => $pv->id,
+            'name' => 'Standard',
+            'price_cents' => 1500000,
+            'currency' => 'NGN',
+        ]);
+    }
+
     public function test_full_registration_flow_without_payment()
     {
         Mail::fake();
@@ -36,7 +62,7 @@ class EndToEndFlowTest extends TestCase
             'otp' => $otp,
         ]);
 
-        $response->assertRedirect('/payment');
+        $response->assertRedirect('/payment?registrationId=' . $registration->id);
         $registration->refresh();
         $this->assertNotNull($registration->email_verified_at);
 
@@ -65,7 +91,7 @@ class EndToEndFlowTest extends TestCase
         ]);
 
         $response->assertRedirect();
-        $response->assertSessionHasErrors();
+        $response->assertSessionHas('error');
         $registration->refresh();
         $this->assertNull($registration->email_verified_at);
     }

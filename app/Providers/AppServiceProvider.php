@@ -3,9 +3,12 @@
 namespace App\Providers;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
@@ -24,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureRateLimiting();
     }
 
     /**
@@ -46,5 +50,17 @@ class AppServiceProvider extends ServiceProvider
                 ->uncompromised()
             : null
         );
+    }
+
+    /**
+     * Configure application rate limiters for public endpoints.
+     */
+    protected function configureRateLimiting(): void
+    {
+        RateLimiter::for('register', fn (Request $request) => Limit::perMinutes(5, 10)->by($request->ip()));
+        RateLimiter::for('verify-otp', fn (Request $request) => Limit::perMinute(3)->by($request->ip()));
+        RateLimiter::for('verify-otp-resend', fn (Request $request) => Limit::perMinute(3)->by($request->ip()));
+        RateLimiter::for('certificate-verify', fn (Request $request) => Limit::perMinute(5)->by($request->ip()));
+        RateLimiter::for('paystack-webhook', fn (Request $request) => Limit::perMinute(120)->by($request->ip()));
     }
 }

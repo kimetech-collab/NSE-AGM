@@ -5,6 +5,11 @@ namespace App\Services;
 use Illuminate\Http\Request;
 use App\Models\PaymentTransaction;
 use App\Models\Registration;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
+use App\Events\PaymentConfirmed;
+use App\Events\RefundInitiated;
 
 class PaymentService
 {
@@ -14,22 +19,26 @@ class PaymentService
      */
     public function handleWebhook(Request $request)
     {
-        // Basic verification: HMAC signature header (X-Paystack-Signature)
-        $signature = $request->header('X-Paystack-Signature');
         $secret = config('services.paystack.secret') ?? env('PAYSTACK_SECRET');
-        if (!$secret || !$signature) {
-            return response('Missing signature', 400);
+        if (! $secret) {
+            return response('Missing secret', 500);
         }
 
-        $hash = hash_hmac('sha512', $request->getContent(), $secret);
-        if (!hash_equals($hash, $signature)) {
-            return response('Invalid signature', 403);
-        }
-
+        $event = $request->input('event');
         $data = $request->input('data', []);
         $reference = $data['reference'] ?? null;
         if (!$reference) {
             return response('Missing reference', 400);
+        }
+
+        if ($event !== 'charge.success') {
+            return response('Ignored event', 200);
+        }
+
+        // Replay guard (short-term idempotency for same payload)
+        $replayKey = 'paystack_webhook_seen_' . $reference . '_' . ($data['id'] ?? 'na');
+        if (! Cache::add($replayKey, true, now()->addMinutes(10))) {
+            return response('Already processed', 200);
         }
 
         // Idempotency: if transaction exists with provider_reference, ignore
@@ -38,28 +47,131 @@ class PaymentService
             return response('Already processed', 200);
         }
 
-        // Create or update transaction record
-        $tx = PaymentTransaction::updateOrCreate(
-            ['provider_reference' => $reference],
-            [
-                'provider' => 'paystack',
-                'paystack_transaction_id' => $data['id'] ?? null,
-                'amount_cents' => (int)($data['amount'] ?? 0),
-                'currency' => $data['currency'] ?? 'NGN',
-                'status' => ($data['status'] ?? 'pending') === 'success' ? 'success' : 'failed',
-                'payload' => $data,
-            ]
-        );
+        // Verify with Paystack API (source-of-truth)
+        $verify = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $secret,
+        ])->get('https://api.paystack.co/transaction/verify/' . $reference);
 
-        // If success, update registration
-        if ($tx->status === 'success' && ($meta = $data['metadata'] ?? null) && isset($meta['registration_id'])) {
-            $registration = Registration::find($meta['registration_id']);
-            if ($registration) {
-                $registration->update(['payment_status' => 'paid', 'ticket_token' => hash('sha256', $reference)]);
-            }
+        $verifyJson = $verify->json();
+        if (! $verify->successful() || ! ($verifyJson['status'] ?? false)) {
+            return response('Verification failed', 400);
         }
 
-        return response('OK', 200);
+        $verifyData = $verifyJson['data'] ?? [];
+        if (($verifyData['status'] ?? null) !== 'success') {
+            return response('Payment not successful', 200);
+        }
+
+        // Optional consistency checks
+        if (! empty($data['amount']) && ($verifyData['amount'] ?? null) !== $data['amount']) {
+            return response('Amount mismatch', 422);
+        }
+        if (! empty($data['currency']) && ($verifyData['currency'] ?? null) !== $data['currency']) {
+            return response('Currency mismatch', 422);
+        }
+
+        return DB::transaction(function () use ($data, $verifyData, $reference) {
+            // Create or update transaction record
+            $tx = PaymentTransaction::updateOrCreate(
+                ['provider_reference' => $reference],
+                [
+                    'provider' => 'paystack',
+                    'paystack_transaction_id' => $verifyData['id'] ?? null,
+                    'amount_cents' => (int)($verifyData['amount'] ?? $data['amount'] ?? 0),
+                    'currency' => $verifyData['currency'] ?? $data['currency'] ?? 'NGN',
+                    'status' => 'success',
+                    'payload' => $verifyData,
+                ]
+            );
+
+            // If success, update registration
+            if (($meta = $data['metadata'] ?? null) && isset($meta['registration_id'])) {
+                $registration = Registration::find($meta['registration_id']);
+                if ($registration) {
+                    $registration->update([
+                        'payment_status' => 'paid',
+                        'ticket_token' => hash('sha256', $reference . $registration->id),
+                    ]);
+                    event(new PaymentConfirmed($tx, $registration));
+                }
+            }
+
+            return response('OK', 200);
+        });
+
+    }
+
+    /**
+     * Fallback verification for Paystack callback.
+     * Verifies the reference with Paystack and updates local records if needed.
+     */
+    public function verifyReference(string $reference): array
+    {
+        $secret = config('services.paystack.secret') ?? env('PAYSTACK_SECRET');
+        if (! $secret) {
+            return ['ok' => false, 'reason' => 'missing_secret'];
+        }
+
+        $existing = PaymentTransaction::where('provider_reference', $reference)->first();
+
+        if ($existing && $existing->status === 'success' && $existing->registration) {
+            return ['ok' => true, 'transaction' => $existing, 'registration' => $existing->registration];
+        }
+
+        if ($existing && $existing->status === 'refunded') {
+            return ['ok' => false, 'reason' => 'refunded'];
+        }
+
+        $verify = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $secret,
+        ])->get('https://api.paystack.co/transaction/verify/' . $reference);
+
+        $verifyJson = $verify->json();
+        if (! $verify->successful() || ! ($verifyJson['status'] ?? false)) {
+            return ['ok' => false, 'reason' => 'verify_failed', 'response' => $verifyJson, 'status_code' => $verify->status()];
+        }
+
+        $verifyData = $verifyJson['data'] ?? [];
+        if (($verifyData['status'] ?? null) !== 'success') {
+            return ['ok' => false, 'reason' => 'not_success'];
+        }
+
+        if ($existing && ! empty($verifyData['amount']) && $existing->amount_cents && (int) $verifyData['amount'] !== (int) $existing->amount_cents) {
+            return ['ok' => false, 'reason' => 'amount_mismatch'];
+        }
+
+        if ($existing && ! empty($verifyData['currency']) && $existing->currency && $verifyData['currency'] !== $existing->currency) {
+            return ['ok' => false, 'reason' => 'currency_mismatch'];
+        }
+
+        return DB::transaction(function () use ($verifyData, $reference, $existing) {
+            $tx = PaymentTransaction::updateOrCreate(
+                ['provider_reference' => $reference],
+                [
+                    'provider' => 'paystack',
+                    'paystack_transaction_id' => $verifyData['id'] ?? null,
+                    'amount_cents' => (int) ($verifyData['amount'] ?? $existing->amount_cents ?? 0),
+                    'currency' => $verifyData['currency'] ?? $existing->currency ?? 'NGN',
+                    'status' => 'success',
+                    'payload' => $verifyData,
+                ]
+            );
+
+            $registration = null;
+            $meta = $verifyData['metadata'] ?? null;
+            if ($meta && isset($meta['registration_id'])) {
+                $registration = Registration::find($meta['registration_id']);
+                if ($registration) {
+                    $registration->update([
+                        'payment_status' => 'paid',
+                        'ticket_token' => $registration->ticket_token ?: hash('sha256', $reference . $registration->id),
+                    ]);
+                    event(new PaymentConfirmed($tx, $registration));
+                }
+            }
+
+            return ['ok' => true, 'transaction' => $tx, 'registration' => $registration];
+        });
     }
 
     /**
@@ -127,6 +239,7 @@ class PaymentService
         // Optionally update registration
         if ($tx->registration) {
             $tx->registration->update(['payment_status' => 'refunded']);
+            event(new RefundInitiated($tx, $tx->registration, $refundJson));
         }
 
         return ['success' => true, 'data' => $refundJson];

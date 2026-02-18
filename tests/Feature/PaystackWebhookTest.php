@@ -6,6 +6,7 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\Registration;
 use App\Models\PaymentTransaction;
+use Illuminate\Support\Facades\Http;
 
 class PaystackWebhookTest extends TestCase
 {
@@ -39,6 +40,20 @@ class PaystackWebhookTest extends TestCase
         $payload = ['event' => 'charge.success', 'data' => $data];
         $json = json_encode($payload);
         $signature = hash_hmac('sha512', $json, $secret);
+
+        Http::fake([
+            'https://api.paystack.co/transaction/verify/*' => Http::response([
+                'status' => true,
+                'message' => 'Verification successful',
+                'data' => [
+                    'id' => 9999,
+                    'reference' => $data['reference'],
+                    'amount' => $data['amount'],
+                    'currency' => $data['currency'],
+                    'status' => 'success',
+                ],
+            ]),
+        ]);
 
         // Act: first webhook
         $res1 = $this->withHeaders(['X-Paystack-Signature' => $signature])

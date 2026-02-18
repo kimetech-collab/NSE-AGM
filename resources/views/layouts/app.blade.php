@@ -1,15 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>{{ config('app.name', 'NSE AGM Portal') }}</title>
-    @if (file_exists(public_path('build/manifest.json')))
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @else
-        <link rel="stylesheet" href="/build/assets/app.css">
-        <script src="/build/assets/app.js" defer></script>
-    @endif
+    @include('partials.head')
 </head>
 <body class="bg-gray-50 min-h-screen font-sans text-gray-900">
     <div class="min-h-screen">
@@ -24,8 +16,12 @@
                     {{ session('error') }}
                 </div>
             @endif
+            @isset($slot)
+                {{ $slot }}
+            @endisset
             @yield('content')
         </div>
     </div>
+    @fluxScripts
 </body>
 </html>
