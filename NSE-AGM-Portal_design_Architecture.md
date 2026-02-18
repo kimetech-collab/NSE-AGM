@@ -1,13 +1,13 @@
 # NSE 59th AGM & International Conference Digital Portal
 ## Architecture, Design System & UX Specification
-### Phases 1–3 | Version 1.0 | February 2026
+### Phases 1–4 + Extended Reference | Version 2.0 | February 2026
 
 ---
 
 > **Document Type:** Exportable Architecture & Design Reference
 > **Project:** NSE 59th AGM & International Conference Portal
-> **Stack:** Laravel 12 · Blade + Alpine.js · MySQL 8 · Redis · Paystack
-> **Standard:** TRS v2.0 Enterprise Edition
+> **Stack:** Laravel 12 · Blade + Alpine.js · MySQL 8 · Redis · Paystack · pgBouncer
+> **Status:** Phase 1–4 Complete. Ready for Implementation.
 > **Prepared:** February 2026
 
 ---
@@ -17,16 +17,14 @@
 1. [Project Overview](#1-project-overview)
 2. [Phase 1 — Clarification & Decisions](#2-phase-1--clarification--decisions)
 3. [Phase 2 — Information Architecture](#3-phase-2--information-architecture)
-   - 3.1 Sitemap
-   - 3.2 User Flow Mapping
-   - 3.3 Risk UX Areas & Mitigations
 4. [Phase 3 — Design System](#4-phase-3--design-system)
-   - 4.1 Typography System
-   - 4.2 Color Strategy
-   - 4.3 Spacing & Grid
-   - 4.4 Component Library
-5. [Technical Architecture Reference](#5-technical-architecture-reference)
-6. [Event Timeline & Scope Boundaries](#6-event-timeline--scope-boundaries)
+5. [Phase 4 — Database Design](#5-phase-4--database-design)
+6. [Technical Architecture Reference](#6-technical-architecture-reference)
+7. [Security & Compliance Audit](#7-security--compliance-audit)
+8. [Performance Optimization](#8-performance-optimization)
+9. [Architectural Patterns](#9-architectural-patterns)
+10. [Event Timeline & Scope Boundaries](#10-event-timeline--scope-boundaries)
+11. [Implementation Roadmap](#11-implementation-roadmap)
 
 ---
 
@@ -87,11 +85,21 @@ Deliver a secure, scalable, auditable, and governance-compliant portal supportin
 | Early bird deadline | April 28, 2026 |
 | Event dates (demo) | November 1 – November 4, 2026 (4 days) |
 | Sponsor logos | **Included (mandatory homepage section)** |
-| CAPTCHA | **Cloudflare Turnstile** (free, privacy-first, zero friction) |
-| MFA method | **Email OTP** (TOTP-upgradeable in future) |
-| Pricing values | **Placeholder (₦0)** — admin-configurable post-launch |
-| Email verification | **Required before payment is accessible** |
-| Refund UI | **Admin initiates via Paystack Refund API directly from portal** |
+| CAPTCHA | **Cloudflare Turnstile** (free, privacy-first, zero friction) + throttling on failed attempts |
+| MFA method | **Email OTP** (10-min expiry, 5 attempts per IP, configurable by Super Admin) |
+| Pricing values | **Placeholder (₦0)** — admin-configurable post-launch. Early Bird pricing = registration timestamp. |
+| Email verification | **Required before payment is accessible** (one-time for participants) |
+| Refund UI | **Admin initiates via Paystack Refund API directly from portal** → Refund status = REFUNDED |
+| NSE Membership | **No external validation** — accept any NSE-##### format (self-attestation) |
+| Certificate Verify | **Show**: Certificate ID + issue date + event name + participant name (public, rate-limited) |
+| Virtual Attendance | **Single 10-minute session required** (not cumulative), can switch platforms during event |
+| Certificate Release | **Manual admin trigger at 4 PM on event end day** (Day 4 close), admin can override for ineligible |
+| QR Token | **Single token valid forever**, hourly cache refresh (browser + localStorage), scan logged |
+| Redis Strategy | **Single instance cluster** (recommend: Redis Sentinel for failover, RDB snapshots for persistence) |
+| Database Replica | **All SELECT queries hit read replica** (real-time QR scans + writes → primary) |
+| Connection Pooling | **pgBouncer recommended**, aim for 1,000 total connections. Prepared statements enabled. |
+| Sponsor Section | **5-7 sponsors loaded on page (not scrollable list)**, no cache invalidation on removal |
+| Payment References | **Include**: registration time, payment time, refund time. Early bird = registration timestamp. |
 | Object storage | Laravel filesystem abstraction (local default, S3-ready config) |
 | AssuredERP | **Separate system — excluded from this portal** |
 | Member import | Not needed — participants self-register |
@@ -112,6 +120,22 @@ Deliver a secure, scalable, auditable, and governance-compliant portal supportin
 | Overall tone | Professional, authoritative, institutional |
 
 > **Portal decision:** Typography upgraded from Roboto → **Inter** (superior screen readability, better at small sizes, critical for 24–65 age range and WCAG AA). Colors refined for institutional credibility (see Phase 3).
+
+### Phase 1 Clarification Supplement — Critical Decisions (User-Approved)
+
+| Decision Area | Final Decision | Rationale |
+|---|---|---|
+| **NSE Membership Verification** | No external integration. Accept any NSE-##### format as self-declared. | Self-registration model. Verify via email + payment confirmation. |
+| **Certificate Public Visibility** | Show participant name + Certificate ID + issue date + event name | Balance public verification with privacy. Name is public record in AGM context. |
+| **Virtual Attendance Requirement** | Single 10-minute session minimum (not cumulative). Tracked server-side with heartbeat deduplication. | Single continuous engagement metric. Prevents fake login/logout loops. |
+| **Virtual Platform Switching** | Can switch platforms during 4-day event (Zoom → Jitsi → YouTube). Admin controls primary/backup. | Resilience if primary platform fails. External team manages streaming. |
+| **Certificate Generation Trigger** | Manual admin action at 4 PM on event end day (Day 4 close). Admin can override + issue to ineligible. | Control over batch timing. Flexibility for edge cases (bonus attendance, disputes). |
+| **QR Token Lifecycle** | Single token valid forever. Logged on scan (timestamp + check-in status). Revoked only if refunded. | Simplicity. Re-issuing tokens complicates audit trail. |
+| **QR Cache Refresh** | Hourly refresh. Cached in browser + localStorage. IT team provisions offline tablets. | Balance between data freshness and offline resilience. |
+| **Email Change Handling** | If participant changes email after registration, old email still valid for payment confirmation. OTP sent to old email if changed after verification. | Minimize friction. Payment reference is immutable. |
+| **Refund + Attendance Edge Case** | If participant attends (physically/virtually) AND is refunded, show "REFUNDED" status on QR scan. Prevent credential abuse. | Security: payment is source of truth, even if attended. |
+| **Early Bird Pricing Lock** | Pricing determined by registration timestamp (not payment timestamp). If paid after early bird window closes, registrant retains early bird rate if registered before cutoff. | Pro-participant. Encourages early action. |
+| **Sponsor Logo Removal** | Removing a sponsor from homepage does NOT trigger cache invalidation. Manual refresh required. Load 5-7 sponsors on page load (not scrollable list). | Reduce cache churn. Sponsored content is performance-critical. |
 
 ---
 
@@ -992,7 +1016,7 @@ CHART (Daily Registration Trend):
 
 ---
 
-## 5. TECHNICAL ARCHITECTURE REFERENCE
+### 5.1 SCHEMA & RELATIONSHIPS
 
 ### Stack Summary
 
