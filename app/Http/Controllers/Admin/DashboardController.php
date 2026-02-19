@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PaymentTransaction;
 use App\Models\QrScan;
 use App\Models\Registration;
+use App\Models\CheckIn;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -29,15 +30,21 @@ class DashboardController extends Controller
             $todayRegs = Registration::where('registration_timestamp', '>=', $today)->count();
             $last7Regs = Registration::where('registration_timestamp', '>=', now()->subDays(6)->startOfDay())->count();
 
+            // Check-ins metrics
+            $checkinsToday = CheckIn::where('created_at', '>=', $today)->count();
+            $uniqueCheckinsToday = CheckIn::where('created_at', '>=', $today)
+                ->distinct('registration_id')
+                ->count('registration_id');
+            $totalCheckIns = CheckIn::count();
+            $uniqueParticipants = CheckIn::distinct('registration_id')->count('registration_id');
+
+            // QR scans (legacy)
             $qrScansToday = 0;
-            $checkinsToday = 0;
             if (Schema::hasTable('qr_scans')) {
                 $qrScansToday = QrScan::where('scanned_at', '>=', $today)->count();
-                $checkinsToday = QrScan::where('scanned_at', '>=', $today)
-                    ->where('status', 'valid')
-                    ->count();
             }
 
+            // Revenue series
             $start = now()->subDays(13)->startOfDay();
             $daily = Registration::where('registration_timestamp', '>=', $start)
                 ->select(DB::raw('date(registration_timestamp) as day'), DB::raw('count(*) as total'))
@@ -54,6 +61,9 @@ class DashboardController extends Controller
                 $series[] = (int) ($daily[$day]->total ?? 0);
             }
 
+            // Attendance conversion
+            $attendanceRate = $paid > 0 ? round(($uniqueParticipants / $paid) * 100) : 0;
+
             return [
                 'total' => $total,
                 'paid' => $paid,
@@ -63,8 +73,12 @@ class DashboardController extends Controller
                 'avgTicket' => $avgTicket,
                 'todayRegs' => $todayRegs,
                 'last7Regs' => $last7Regs,
-                'qrScansToday' => $qrScansToday,
                 'checkinsToday' => $checkinsToday,
+                'uniqueCheckinsToday' => $uniqueCheckinsToday,
+                'totalCheckIns' => $totalCheckIns,
+                'uniqueParticipants' => $uniqueParticipants,
+                'attendanceRate' => $attendanceRate,
+                'qrScansToday' => $qrScansToday,
                 'labels' => $labels,
                 'series' => $series,
             ];

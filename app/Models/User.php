@@ -14,6 +14,13 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
 
+    public const ROLE_SUPER_ADMIN = 'super_admin';
+    public const ROLE_FINANCE_ADMIN = 'finance_admin';
+    public const ROLE_REGISTRATION_ADMIN = 'registration_admin';
+    public const ROLE_ACCREDITATION_OFFICER = 'accreditation_officer';
+    public const ROLE_SUPPORT_AGENT = 'support_agent';
+    public const ROLE_REGISTRANT = 'registrant';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -22,6 +29,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'role',
         'password',
     ];
 
@@ -48,6 +56,15 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function hasRole(string ...$roles): bool
+    {
+        if (in_array($this->role, $roles, true)) {
+            return true;
+        }
+
+        return $this->role === self::ROLE_SUPER_ADMIN;
     }
 
     /**

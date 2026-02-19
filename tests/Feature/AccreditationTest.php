@@ -16,7 +16,10 @@ class AccreditationTest extends TestCase
 
     public function test_admin_can_scan_valid_ticket()
     {
-        $admin = User::factory()->create(['two_factor_confirmed_at' => now()]);
+        $admin = User::factory()->create([
+            'role' => 'accreditation_officer',
+            'two_factor_confirmed_at' => now(),
+        ]);
 
         $pv = PricingVersion::create(['version_name' => 'mvp']);
         PricingItem::create([
@@ -46,7 +49,10 @@ class AccreditationTest extends TestCase
 
     public function test_offline_cache_returns_paid_registrations()
     {
-        $admin = User::factory()->create(['two_factor_confirmed_at' => now()]);
+        $admin = User::factory()->create([
+            'role' => 'accreditation_officer',
+            'two_factor_confirmed_at' => now(),
+        ]);
 
         $pv = PricingVersion::create(['version_name' => 'mvp']);
         PricingItem::create([

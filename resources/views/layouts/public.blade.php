@@ -54,6 +54,7 @@
                 <a href="/programme"                    role="listitem" class="px-3 py-2 text-sm font-medium text-nse-neutral-600 hover:text-nse-green-700 hover:bg-nse-green-50 rounded-md transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-nse-green-700">Programme</a>
                 <a href="{{ route('pricing') }}"        role="listitem" class="px-3 py-2 text-sm font-medium text-nse-neutral-600 hover:text-nse-green-700 hover:bg-nse-green-50 rounded-md transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-nse-green-700">Pricing</a>
                 <a href="/venue"                        role="listitem" class="px-3 py-2 text-sm font-medium text-nse-neutral-600 hover:text-nse-green-700 hover:bg-nse-green-50 rounded-md transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-nse-green-700">Venue</a>
+                <a href="/sponsors"                     role="listitem" class="px-3 py-2 text-sm font-medium text-nse-neutral-600 hover:text-nse-green-700 hover:bg-nse-green-50 rounded-md transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-nse-green-700">Sponsors</a>
                 <a href="/faqs"                         role="listitem" class="px-3 py-2 text-sm font-medium text-nse-neutral-600 hover:text-nse-green-700 hover:bg-nse-green-50 rounded-md transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-nse-green-700">FAQs</a>
             </div>
 
@@ -122,6 +123,7 @@
             <a @click="open = false" href="/programme"              class="block px-4 py-3 text-base font-medium text-nse-neutral-600 hover:text-nse-green-700 hover:bg-nse-green-50 rounded-md transition-colors">Programme</a>
             <a @click="open = false" href="{{ route('pricing') }}"  class="block px-4 py-3 text-base font-medium text-nse-neutral-600 hover:text-nse-green-700 hover:bg-nse-green-50 rounded-md transition-colors">Pricing</a>
             <a @click="open = false" href="/venue"                  class="block px-4 py-3 text-base font-medium text-nse-neutral-600 hover:text-nse-green-700 hover:bg-nse-green-50 rounded-md transition-colors">Venue</a>
+            <a @click="open = false" href="/sponsors"               class="block px-4 py-3 text-base font-medium text-nse-neutral-600 hover:text-nse-green-700 hover:bg-nse-green-50 rounded-md transition-colors">Sponsors</a>
             <a @click="open = false" href="/faqs"                   class="block px-4 py-3 text-base font-medium text-nse-neutral-600 hover:text-nse-green-700 hover:bg-nse-green-50 rounded-md transition-colors">FAQs</a>
             <div class="border-t border-nse-neutral-200 pt-3 mt-3">
                 @auth
@@ -190,7 +192,7 @@
                 <ul class="space-y-3">
                     <li><a href="/about"       class="text-white/80 text-sm hover:text-white transition-colors">About the AGM</a></li>
                     <li><a href="/programme"   class="text-white/80 text-sm hover:text-white transition-colors">Programme</a></li>
-                    <li><a href="/speakers"    class="text-white/80 text-sm hover:text-white transition-colors">Speakers</a></li>
+                    <li><a href="/sponsors"    class="text-white/80 text-sm hover:text-white transition-colors">Sponsors</a></li>
                     <li><a href="/venue"       class="text-white/80 text-sm hover:text-white transition-colors">Venue &amp; Travel</a></li>
                 </ul>
             </nav>

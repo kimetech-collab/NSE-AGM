@@ -140,4 +140,16 @@ class RegistrationController extends Controller
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
     }
+
+    // Show registration status dashboard
+    public function status(Request $request)
+    {
+        $user = Auth::user();
+        $registrations = Registration::where('email', $user->email)->get();
+
+        return view('registration.status', [
+            'registrations' => $registrations,
+            'user' => $user,
+        ]);
+    }
 }

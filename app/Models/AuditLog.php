@@ -55,6 +55,7 @@ class AuditLog extends Model
             'refund.completed' => 'Refund Completed',
             'certificate.issued' => 'Certificate Issued',
             'certificate.revoked' => 'Certificate Revoked',
+            'accreditation.scan' => 'Accreditation Scan',
             'user.created' => 'User Created',
             'user.updated' => 'User Updated',
             'user.deleted' => 'User Deleted',

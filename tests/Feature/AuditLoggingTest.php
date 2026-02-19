@@ -22,6 +22,7 @@ class AuditLoggingTest extends TestCase
         parent::setUp();
         $this->auditService = app(AuditService::class);
         $this->user = User::factory()->create([
+            'role' => 'registration_admin',
             'email_verified_at' => now(),
             'two_factor_confirmed_at' => now(),
         ]);
@@ -260,6 +261,7 @@ class AuditLoggingTest extends TestCase
         $this->actingAs($this->user);
 
         $user2 = User::factory()->create([
+            'role' => 'registration_admin',
             'email_verified_at' => now(),
             'two_factor_confirmed_at' => now(),
         ]);

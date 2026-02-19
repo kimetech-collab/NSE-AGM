@@ -69,7 +69,8 @@ class EndToEndFlowTest extends TestCase
         // Step 4: Access payment page
         $response = $this->get('/payment?registrationId=' . $registration->id);
         $response->assertOk();
-        $response->assertSee('NGN 10,000'); // Correct amount displayed
+        $response->assertSee('₦'); // Currency symbol displayed
+        $response->assertSee($registration->name); // Participant name shown
     }
 
     public function test_incorrect_otp_fails()

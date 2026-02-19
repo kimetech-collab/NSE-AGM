@@ -447,25 +447,29 @@
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 items-center justify-items-center" role="list" aria-label="Conference sponsors">
-            @php
-                $sponsors = [
-                    'Sponsor One', 'Sponsor Two', 'Sponsor Three', 'Sponsor Four', 'Sponsor Five',
-                ];
-            @endphp
-            @foreach($sponsors as $sponsor)
+            @forelse($sponsors as $sponsor)
             <div
                 role="listitem"
                 class="w-full flex items-center justify-center p-4 border border-nse-neutral-200 rounded-lg h-20 bg-nse-neutral-50 hover:border-nse-green-700 hover:bg-nse-green-50 transition-colors duration-200 group"
             >
-                {{--
-                    Replace with actual logo:
-                    <img src="{{ asset('images/sponsors/slug.png') }}"
-                         alt="{{ $sponsor }}"
+                @if(!empty($sponsor->logo_url))
+                    <img src="{{ $sponsor->logo_url }}"
+                         alt="{{ $sponsor->name }}"
                          class="max-h-10 max-w-full object-contain filter grayscale group-hover:grayscale-0 transition-all duration-200">
-                --}}
-                <span class="text-nse-neutral-400 text-xs font-medium text-center group-hover:text-nse-green-700 transition-colors">{{ $sponsor }}</span>
+                @else
+                    <span class="text-nse-neutral-400 text-xs font-medium text-center group-hover:text-nse-green-700 transition-colors">{{ $sponsor->name }}</span>
+                @endif
             </div>
-            @endforeach
+            @empty
+                @foreach(['Sponsor One', 'Sponsor Two', 'Sponsor Three', 'Sponsor Four', 'Sponsor Five'] as $placeholderSponsor)
+                    <div
+                        role="listitem"
+                        class="w-full flex items-center justify-center p-4 border border-nse-neutral-200 rounded-lg h-20 bg-nse-neutral-50"
+                    >
+                        <span class="text-nse-neutral-400 text-xs font-medium text-center">{{ $placeholderSponsor }}</span>
+                    </div>
+                @endforeach
+            @endforelse
         </div>
 
         <p class="text-center mt-8 text-nse-neutral-400 text-sm">
