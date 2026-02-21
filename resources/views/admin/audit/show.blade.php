@@ -1,8 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Audit Log Details')
 
-@section('content')
+@section('admin_content')
 <div class="py-12">
     <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
         <!-- Header -->
@@ -69,7 +69,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">User Agent</label>
-                        <div class="mt-2 text-gray-900 font-mono text-xs break-words">{{ $auditLog->user_agent ?? 'N/A' }}</div>
+                        <div class="mt-2 text-gray-900 font-mono text-xs wrap-break-word">{{ $auditLog->user_agent ?? 'N/A' }}</div>
                     </div>
                 </div>
 

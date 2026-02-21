@@ -30,6 +30,10 @@ class AccreditationController extends Controller
         $result = $this->qr->validateToken($data['token']);
         $this->qr->logScan($data['token'], $result, ['source' => 'admin_scan']);
 
+        if ($request->expectsJson() || $request->wantsJson() || $request->isJson()) {
+            return response()->json($result);
+        }
+
         return redirect()->back()->with('scan_result', $result);
     }
 

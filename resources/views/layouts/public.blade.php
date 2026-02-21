@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="NSE 59th Annual General Meeting & International Conference — Register, pay and manage your attendance online.">
-    <title>@yield('title', 'NSE 59th AGM & International Conference 2026')</title>
+    <title>@yield('title', 'NSE 59th AGM & International Conference')</title>
 
     <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -14,12 +14,24 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        .font-english-gothic {
+            font-family: 'UnifrakturCook', 'Old English Text MT', 'Blackletter', 'Cloister Black', serif;
+            letter-spacing: 0.3px;
+        }
+    </style>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     @stack('head')
 </head>
 <body class="bg-white font-sans text-nse-neutral-900 antialiased">
+@php
+    $eventStartAt = \App\Support\EventDates::get('event_start_at');
+    $eventEndAt = \App\Support\EventDates::get('event_end_at');
+@endphp
 
 {{-- ═══════════════════════════════════════════════════════
      STICKY NAVIGATION
@@ -42,8 +54,8 @@
                     <span class="text-white font-bold text-sm leading-none">NSE</span>
                 </div>
                 <div class="hidden sm:block">
-                    <span class="block text-nse-green-700 font-bold text-sm leading-tight">Nigerian Society of Engineers</span>
-                    <span class="block text-nse-neutral-400 text-xs leading-tight">59th AGM &amp; Conference 2026</span>
+                    <span class="block text-nse-green-700 font-bold text-sm leading-tight font-english-gothic">Nigerian Society of Engineers</span>
+                    <span class="block text-nse-neutral-400 text-xs leading-tight">59th AGM &amp; Conference {{ $eventEndAt->year }}</span>
                 </div>
             </a>
 
@@ -177,8 +189,8 @@
                         <span class="text-white font-bold text-sm">NSE</span>
                     </div>
                     <div>
-                        <span class="block text-white font-bold text-sm leading-tight">Nigerian Society of Engineers</span>
-                        <span class="block text-white/60 text-xs leading-tight">59th AGM 2026</span>
+                        <span class="block text-white font-bold text-sm leading-tight font-english-gothic">Nigerian Society of Engineers</span>
+                        <span class="block text-white/60 text-xs leading-tight">59th AGM {{ $eventEndAt->year }}</span>
                     </div>
                 </div>
                 <p class="text-white/70 text-sm leading-relaxed">
@@ -217,7 +229,7 @@
                 </ul>
                 <div class="mt-6">
                     <p class="text-white/50 text-xs mb-1">Event Dates</p>
-                    <p class="text-white/90 text-sm font-medium">November 1 – 4, 2026</p>
+                    <p class="text-white/90 text-sm font-medium">{{ $eventStartAt->format('F j') }} – {{ $eventEndAt->format('j, Y') }}</p>
                     <p class="text-white/60 text-xs mt-1">Maiduguri, Borno State</p>
                 </div>
             </nav>
@@ -226,7 +238,7 @@
         {{-- Footer bottom bar --}}
         <div class="border-t border-white/10 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p class="text-white/50 text-xs text-center sm:text-left">
-                &copy; {{ date('Y') }} Nigerian Society of Engineers. All rights reserved.
+                &copy; {{ date('Y') }} <span class="font-english-gothic">Nigerian Society of Engineers</span>. All rights reserved.
             </p>
             <p class="text-white/40 text-xs text-center">
                 Secure portal powered by Paystack &middot; WCAG AA compliant

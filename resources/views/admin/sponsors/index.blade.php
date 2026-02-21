@@ -1,13 +1,13 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('content')
+@section('admin_content')
     <div class="py-8 space-y-6">
-        <div>
-            <h1 class="text-2xl font-bold text-nse-neutral-900">Sponsors</h1>
-            <p class="text-sm text-nse-neutral-600">Manage homepage sponsor display (5-7 active recommended).</p>
-        </div>
+        <x-admin.page-header
+            title="Sponsors"
+            subtitle="Manage homepage sponsor display (5-7 active recommended)."
+        />
 
-        <section class="bg-white border border-nse-neutral-200 rounded-lg p-5">
+        <x-admin.panel class="p-5">
             <h2 class="text-lg font-semibold text-nse-neutral-900 mb-4">Add Sponsor</h2>
             <form method="POST" action="{{ route('admin.sponsors.store') }}" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 @csrf
@@ -24,10 +24,9 @@
                     <button class="px-4 py-2 bg-nse-green-700 text-white rounded">Create Sponsor</button>
                 </div>
             </form>
-        </section>
+        </x-admin.panel>
 
-        <section class="bg-white border border-nse-neutral-200 rounded-lg overflow-hidden">
-            <table class="min-w-full text-sm">
+        <x-admin.table>
                 <thead class="bg-nse-neutral-50">
                     <tr>
                         <th class="px-4 py-3 text-left">Name</th>
@@ -81,7 +80,6 @@
                         </tr>
                     @endforelse
                 </tbody>
-            </table>
-        </section>
+        </x-admin.table>
     </div>
 @endsection

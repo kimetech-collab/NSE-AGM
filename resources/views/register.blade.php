@@ -1,12 +1,15 @@
 @extends('layouts.public')
 
-@section('title', 'Register — NSE 59th AGM & International Conference 2026')
+@section('title', 'Register — NSE 59th AGM & International Conference')
 
 @section('content')
 
 @php
     $pricingItems = $pricingItems ?? collect();
-    $earlyBirdActive = $earlyBirdActive ?? now()->lt(\Carbon\Carbon::parse('2026-04-28')->endOfDay());
+    $earlyBirdActive = $earlyBirdActive ?? \App\Support\EventDates::earlyBirdActive();
+    $registrationOpenAt = $registrationOpenAt ?? \App\Support\EventDates::get('registration_open_at');
+    $registrationCloseAt = $registrationCloseAt ?? \App\Support\EventDates::get('registration_close_at');
+    $registrationWindowOpen = $registrationWindowOpen ?? \App\Support\EventDates::registrationWindowOpen();
     $noPackages = $pricingItems->isEmpty();
 @endphp
 
@@ -19,6 +22,13 @@
             <p class="text-nse-neutral-500 text-sm mt-2">Complete registration now — email verification is required before payment. Your price is locked at registration.</p>
         </div>
 
+        @if(! $registrationWindowOpen)
+            <div class="mb-4 p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded" role="alert">
+                <h3 class="font-semibold">Registration is currently closed</h3>
+                <p class="text-sm mt-1">Configured window: {{ $registrationOpenAt->format('M j, Y g:i A') }} to {{ $registrationCloseAt->format('M j, Y g:i A') }}.</p>
+            </div>
+        @endif
+
         @if ($errors->any())
             <div class="mb-4 p-4 bg-red-50 border border-red-200 text-red-800 rounded" role="alert">
                 <h3 class="font-semibold">Please fix the following errors</h3>
@@ -30,7 +40,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('register.store') }}" x-data="registrationForm()" x-cloak novalidate>
+        <form method="POST" action="{{ route('register.store') }}" enctype="multipart/form-data" x-data="registrationForm()" x-cloak novalidate>
             @csrf
 
             {{-- Stepper visual (mobile-first) --}}
@@ -86,6 +96,19 @@
                     <label for="email" class="block text-sm font-medium text-nse-neutral-900">Email address <span class="text-nse-error">*</span></label>
                     <input id="email" name="email" x-model="form.email" type="email" required autocomplete="email" value="{{ old('email') }}" class="mt-1 block w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-nse-green-700" />
                     <p class="text-xs text-nse-neutral-500 mt-1">We will send a 6-digit OTP to this email; verification is required before payment.</p>
+                </div>
+
+                <div>
+                    <label for="profile_photo" class="block text-sm font-medium text-nse-neutral-900">Profile Photo <span class="text-nse-error">*</span></label>
+                    <input 
+                        id="profile_photo" 
+                        name="profile_photo" 
+                        type="file" 
+                        required 
+                        accept="image/jpeg,image/png,image/jpg"
+                        class="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer bg-gray-50 focus:outline-none focus:ring-2 focus:ring-nse-green-700"
+                    />
+                    <p class="text-xs text-nse-neutral-500 mt-1">Required. JPG, JPEG or PNG. Max 2MB. This photo will appear on your certificate and ticket.</p>
                 </div>
 
                 <div>
@@ -196,7 +219,7 @@
                             </svg>
                             <div>
                                 <p class="text-sm font-semibold text-nse-neutral-600">Registration prices are being finalised</p>
-                                <p class="text-xs text-nse-neutral-400 mt-0.5 leading-relaxed">The NSE Secretariat is configuring registration packages. The portal opens officially on <strong>February 28, 2026</strong>. Please check back then.</p>
+                                <p class="text-xs text-nse-neutral-400 mt-0.5 leading-relaxed">The NSE Secretariat is configuring registration packages. The portal opens officially on <strong>{{ $registrationOpenAt->format('F j, Y') }}</strong>. Please check back then.</p>
                             </div>
                         </div>
                     @else
@@ -273,6 +296,7 @@
         return {
             step: 1,
             submitting: false,
+            registrationWindowOpen: {{ $registrationWindowOpen ? 'true' : 'false' }},
             form: {
                 first_name: `{{ old('first_name', '') }}`,
                 surname: `{{ old('surname', '') }}`,
@@ -288,7 +312,7 @@
                 attendance: `{{ old('attendance', 'physical') }}`,
             },
             get canSubmit(){
-                return this.form.first_name && this.form.surname && this.form.email && this.form.phone && this.form.self_attest && this.form.attendance;
+                return this.registrationWindowOpen && this.form.first_name && this.form.surname && this.form.email && this.form.phone && this.form.self_attest && this.form.attendance;
             },
             nextStep(){
                 if(this.step === 1){

@@ -1,14 +1,14 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('content')
+@section('admin_content')
     <div class="p-6">
-        <div class="mb-6">
-            <h1 class="text-2xl font-bold">Pricing Management</h1>
-            <p class="text-sm text-nse-neutral-600">Create and manage pricing versions and items.</p>
-        </div>
+        <x-admin.page-header
+            title="Pricing Management"
+            subtitle="Create and manage pricing versions and items."
+        />
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white p-4 rounded shadow-sm border border-nse-neutral-200">
+            <x-admin.panel class="p-4 shadow-sm">
                 <h2 class="text-lg font-semibold mb-3">Create Pricing Version</h2>
                 <form method="POST" action="{{ route('admin.pricing.versions.store') }}" class="grid grid-cols-1 gap-3">
                     @csrf
@@ -18,19 +18,19 @@
                     </div>
                     <div>
                         <label class="text-sm text-gray-600">Starts At</label>
-                        <input type="datetime-local" name="starts_at" class="w-full border rounded px-3 py-2">
+                        <input type="datetime-local" name="starts_at" data-picker="datetime" class="w-full border rounded px-3 py-2">
                     </div>
                     <div>
                         <label class="text-sm text-gray-600">Ends At</label>
-                        <input type="datetime-local" name="ends_at" class="w-full border rounded px-3 py-2">
+                        <input type="datetime-local" name="ends_at" data-picker="datetime" class="w-full border rounded px-3 py-2">
                     </div>
                     <div>
                         <button class="px-4 py-2 bg-nse-green-700 text-white rounded">Create Version</button>
                     </div>
                 </form>
-            </div>
+            </x-admin.panel>
 
-            <div class="bg-white p-4 rounded shadow-sm border border-nse-neutral-200">
+            <x-admin.panel class="p-4 shadow-sm">
                 <h2 class="text-lg font-semibold mb-3">Create Pricing Item</h2>
                 <form method="POST" action="{{ route('admin.pricing.items.store') }}" class="grid grid-cols-1 gap-3">
                     @csrf
@@ -62,12 +62,12 @@
                         <button class="px-4 py-2 bg-nse-green-700 text-white rounded">Create Item</button>
                     </div>
                 </form>
-            </div>
+            </x-admin.panel>
         </div>
 
         <div class="mt-8 space-y-6">
             @forelse($versions as $version)
-                <div class="bg-white p-4 rounded shadow-sm border border-nse-neutral-200">
+                <x-admin.panel class="p-4 shadow-sm">
                     <div class="flex items-center justify-between mb-3">
                         <div>
                             <h3 class="text-lg font-semibold">{{ $version->version_name }}</h3>
@@ -87,8 +87,8 @@
                         @csrf
                         @method('PUT')
                         <input type="text" name="version_name" value="{{ $version->version_name }}" class="border rounded px-3 py-2">
-                        <input type="datetime-local" name="starts_at" value="{{ optional($version->starts_at)->format('Y-m-d\\TH:i') }}" class="border rounded px-3 py-2">
-                        <input type="datetime-local" name="ends_at" value="{{ optional($version->ends_at)->format('Y-m-d\\TH:i') }}" class="border rounded px-3 py-2">
+                        <input type="datetime-local" name="starts_at" value="{{ optional($version->starts_at)->format('Y-m-d\\TH:i') }}" data-picker="datetime" class="border rounded px-3 py-2">
+                        <input type="datetime-local" name="ends_at" value="{{ optional($version->ends_at)->format('Y-m-d\\TH:i') }}" data-picker="datetime" class="border rounded px-3 py-2">
                         <button class="px-3 py-2 bg-nse-neutral-50 border rounded">Update</button>
                     </form>
 
@@ -136,7 +136,7 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
+                </x-admin.panel>
             @empty
                 <div class="text-sm text-nse-neutral-600">No pricing versions yet.</div>
             @endforelse

@@ -31,6 +31,7 @@ class User extends Authenticatable
         'email',
         'role',
         'password',
+        'profile_photo',
     ];
 
     /**
@@ -77,5 +78,29 @@ class User extends Authenticatable
             ->take(2)
             ->map(fn ($word) => Str::substr($word, 0, 1))
             ->implode('');
+    }
+
+    /**
+     * Get the user's registrations
+     */
+    public function registrations()
+    {
+        return $this->hasMany(Registration::class);
+    }
+
+    /**
+     * Get the profile photo URL
+     */
+    public function profilePhotoUrl(): ?string
+    {
+        if (!$this->profile_photo) {
+            return null;
+        }
+
+        if (filter_var($this->profile_photo, FILTER_VALIDATE_URL)) {
+            return $this->profile_photo;
+        }
+
+        return asset('storage/' . $this->profile_photo);
     }
 }

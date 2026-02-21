@@ -1,8 +1,13 @@
 @extends('layouts.public')
 
-@section('title', 'NSE 59th AGM & International Conference 2026 — Register Now')
+@section('title', 'NSE 59th AGM & International Conference — Register Now')
 
 @section('content')
+@php
+    $eventStartAt = \App\Support\EventDates::get('event_start_at');
+    $eventEndAt = \App\Support\EventDates::get('event_end_at');
+    $earlyBirdDeadlineAt = \App\Support\EventDates::get('early_bird_deadline_at');
+@endphp
 
 {{-- ═══════════════════════════════════════════════════════════════════
      SECTION 1 — HERO
@@ -43,7 +48,7 @@
         <p class="text-sm sm:text-base text-white/60 mb-10 sm:mb-12 flex items-center justify-center gap-2 flex-wrap">
             <span>&#128205; Maiduguri, Borno State</span>
             <span class="text-white/30 hidden sm:inline" aria-hidden="true">&middot;</span>
-            <span>&#128197; November 1 – 4, 2026</span>
+            <span>&#128197; {{ $eventStartAt->format('F j') }} – {{ $eventEndAt->format('j, Y') }}</span>
         </p>
 
         {{-- Dual Countdown Timers --}}
@@ -59,7 +64,7 @@
                         setInterval(() => this.tick(), 1000);
                     },
                     tick() {
-                        const diff = new Date('2026-04-28T23:59:59').getTime() - Date.now();
+                        const diff = new Date('{{ $earlyBirdDeadlineAt->format('Y-m-d\\TH:i:s') }}').getTime() - Date.now();
                         if (diff <= 0) { this.days = this.hours = this.mins = this.secs = '00'; return; }
                         const d = Math.floor(diff / 86400000);
                         this.days  = String(d).padStart(2, '0');
@@ -119,7 +124,7 @@
                         <span class="text-white/50 text-[10px] uppercase tracking-wide">Secs</span>
                     </div>
                 </div>
-                <p class="text-white/50 text-xs">Deadline: April 28, 2026</p>
+                <p class="text-white/50 text-xs">Deadline: {{ $earlyBirdDeadlineAt->format('F j, Y') }}</p>
             </div>
 
             {{-- Conference Countdown --}}
@@ -128,7 +133,7 @@
                     days: '00', hours: '00', mins: '00', secs: '00',
                     init() { this.tick(); setInterval(() => this.tick(), 1000); },
                     tick() {
-                        const diff = new Date('2026-11-01T08:00:00').getTime() - Date.now();
+                        const diff = new Date('{{ $eventStartAt->format('Y-m-d\\TH:i:s') }}').getTime() - Date.now();
                         if (diff <= 0) { this.days = this.hours = this.mins = this.secs = '00'; return; }
                         this.days  = String(Math.floor(diff / 86400000)).padStart(2, '0');
                         this.hours = String(Math.floor((diff % 86400000) / 3600000)).padStart(2, '0');
@@ -162,7 +167,7 @@
                         <span class="text-white/50 text-[10px] uppercase tracking-wide">Secs</span>
                     </div>
                 </div>
-                <p class="text-white/50 text-xs">November 1, 2026 &middot; Maiduguri</p>
+                <p class="text-white/50 text-xs">{{ $eventStartAt->format('F j, Y') }} &middot; Maiduguri</p>
             </div>
         </div>
 
@@ -242,7 +247,7 @@
                     <span class="text-nse-green-700">Innovation, Resilience &amp; Sustainable Development</span>
                 </h2>
                 <p class="text-nse-neutral-600 text-base leading-relaxed mb-4">
-                    The Nigerian Society of Engineers (NSE) Annual General Meeting and International Conference is the nation's premier gathering of engineering professionals — spanning civil, mechanical, electrical, petroleum, structural, and all other engineering disciplines.
+                    The <span class="font-english-gothic">Nigerian Society of Engineers</span> (NSE) Annual General Meeting and International Conference is the nation's premier gathering of engineering professionals — spanning civil, mechanical, electrical, petroleum, structural, and all other engineering disciplines.
                 </p>
                 <p class="text-nse-neutral-600 text-base leading-relaxed mb-4">
                     The 59th edition convenes in Maiduguri, Borno State, bringing together engineers from across Nigeria and the diaspora to deliberate on policy, showcase innovation, and advance the profession's role in national development.
@@ -409,7 +414,7 @@
                     </span>
                 </div>
                 <p class="text-nse-neutral-900 text-lg font-semibold">Registration fees vary by category &amp; attendance type</p>
-                <p class="text-nse-neutral-400 text-sm mt-1">Early bird pricing locks at registration date &middot; Deadline: April 28, 2026</p>
+                <p class="text-nse-neutral-400 text-sm mt-1">Early bird pricing locks at registration date &middot; Deadline: {{ $earlyBirdDeadlineAt->format('F j, Y') }}</p>
             </div>
             <div class="flex flex-col sm:flex-row gap-3 flex-shrink-0 w-full sm:w-auto">
                 <a
@@ -490,7 +495,7 @@
             Ready to participate in the 59th NSE AGM?
         </h2>
         <p class="text-white/70 text-base mb-8 max-w-xl mx-auto">
-            Registration is open. Secure your early bird rate before April 28, 2026.
+            Registration is open. Secure your early bird rate before {{ $earlyBirdDeadlineAt->format('F j, Y') }}.
         </p>
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
             <a

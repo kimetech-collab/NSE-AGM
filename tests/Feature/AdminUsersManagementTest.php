@@ -27,7 +27,7 @@ class AdminUsersManagementTest extends TestCase
     public function test_non_super_admin_cannot_view_users_management_page(): void
     {
         $admin = User::factory()->create([
-            'role' => User::ROLE_FINANCE_ADMIN,
+            'role' => User::ROLE_REGISTRANT,
             'email_verified_at' => now(),
             'two_factor_confirmed_at' => now(),
         ]);

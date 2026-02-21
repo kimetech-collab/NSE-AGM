@@ -10,7 +10,7 @@ class Registration extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'name', 'email', 'is_member', 'membership_number',
+        'user_id', 'name', 'email', 'profile_photo', 'is_member', 'membership_number',
         'pricing_version_id', 'pricing_item_id', 'price_cents', 'currency',
         'registration_timestamp', 'email_verified_at', 'payment_status', 'ticket_token',
         'attendance_seconds', 'attendance_status', 'attendance_last_at', 'attendance_eligible_at',
@@ -47,5 +47,21 @@ class Registration extends Model
     public function checkIns()
     {
         return $this->hasMany(CheckIn::class);
+    }
+
+    /**
+     * Get the profile photo URL
+     */
+    public function profilePhotoUrl(): ?string
+    {
+        if (!$this->profile_photo) {
+            return null;
+        }
+
+        if (filter_var($this->profile_photo, FILTER_VALIDATE_URL)) {
+            return $this->profile_photo;
+        }
+
+        return asset('storage/' . $this->profile_photo);
     }
 }

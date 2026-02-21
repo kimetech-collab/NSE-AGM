@@ -1,8 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Venue & Travel — NSE 59th AGM & Conference 2026')
+@section('title', 'Venue & Travel — NSE 59th AGM & Conference')
 
 @section('content')
+@php
+    $eventStartAt = \App\Support\EventDates::get('event_start_at');
+    $eventEndAt = \App\Support\EventDates::get('event_end_at');
+@endphp
 
 {{-- ═══════════════════════════════════════════════════════════════════
      HERO
@@ -15,7 +19,7 @@
                 Venue & Travel
             </h1>
             <p class="text-lg text-white/80 leading-relaxed">
-                The Pinnacle Function Centre in Maiduguri. World-class facilities for 1000+ participants. November 1–4, 2026.
+                The Pinnacle Function Centre in Maiduguri. World-class facilities for 1000+ participants. {{ $eventStartAt->format('F j') }}–{{ $eventEndAt->format('j, Y') }}.
             </p>
         </div>
     </div>

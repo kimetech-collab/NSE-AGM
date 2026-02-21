@@ -3,6 +3,9 @@
 @section('title', 'Certificate Verification')
 
 @section('content')
+    @php
+        $eventEndAt = \App\Support\EventDates::get('event_end_at');
+    @endphp
     <section class="bg-white">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-10 py-10">
             <h1 class="text-2xl font-bold text-nse-neutral-900">Certificate Verification</h1>
@@ -31,7 +34,7 @@
                 <div class="mt-6 p-4 bg-nse-neutral-50 border border-nse-neutral-200 rounded">
                     <p class="text-sm text-nse-neutral-700"><strong>Certificate ID:</strong> {{ $certificate->certificate_id }}</p>
                     <p class="text-sm text-nse-neutral-700"><strong>Participant:</strong> {{ $certificate->registration->name ?? 'Unknown' }}</p>
-                    <p class="text-sm text-nse-neutral-700"><strong>Event:</strong> NSE 59th Annual General Meeting & International Conference 2026</p>
+                    <p class="text-sm text-nse-neutral-700"><strong>Event:</strong> NSE 59th Annual General Meeting & International Conference {{ $eventEndAt->year }}</p>
                     <p class="text-sm text-nse-neutral-700"><strong>Issued:</strong> {{ optional($certificate->issued_at)->format('M d, Y') }}</p>
                     <p class="text-sm text-nse-neutral-700"><strong>Status:</strong> {{ ucfirst($certificate->status) }}</p>
                 </div>

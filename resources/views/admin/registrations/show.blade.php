@@ -1,18 +1,34 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('content')
+@section('admin_content')
     <div class="p-6">
-        <h1 class="text-2xl font-bold mb-4">Registration #{{ $registration->id }}</h1>
+        <x-admin.page-header
+            title="Registration #{{ $registration->id }}"
+            subtitle="View and update participant registration details."
+        />
 
-        <div class="bg-white p-4 rounded shadow">
-            <p><strong>Name:</strong> {{ $registration->name }}</p>
-            <p><strong>Email:</strong> {{ $registration->email }}</p>
-            <p><strong>Member:</strong> {{ $registration->is_member ? 'Yes' : 'No' }}</p>
-            <p><strong>Payment status:</strong> {{ $registration->payment_status }}</p>
-            <p><strong>Ticket:</strong> {{ $registration->ticket_token ?? 'Not issued' }}</p>
-        </div>
+        <x-admin.panel class="p-4 shadow-sm">
+            <div class="flex gap-4 mb-4">
+                @if($registration->profile_photo)
+                    <img src="{{ $registration->profilePhotoUrl() }}" alt="{{ $registration->name }}" class="w-24 h-24 rounded-lg object-cover border-2 border-nse-green-200">
+                @else
+                    <div class="w-24 h-24 rounded-lg bg-gray-100 flex items-center justify-center border-2 border-gray-200">
+                        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                    </div>
+                @endif
+                <div>
+                    <p><strong>Name:</strong> {{ $registration->name }}</p>
+                    <p><strong>Email:</strong> {{ $registration->email }}</p>
+                    <p><strong>Member:</strong> {{ $registration->is_member ? 'Yes' : 'No' }}</p>
+                    <p><strong>Payment status:</strong> {{ $registration->payment_status }}</p>
+                    <p><strong>Ticket:</strong> {{ $registration->ticket_token ?? 'Not issued' }}</p>
+                </div>
+            </div>
+        </x-admin.panel>
 
-        <div class="mt-6 bg-white p-4 rounded shadow">
+        <x-admin.panel class="mt-6 p-4 shadow-sm">
             <h2 class="text-lg font-semibold mb-3">Edit Registration</h2>
             <form method="POST" action="{{ route('admin.registrations.update', $registration->id) }}" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 @csrf
@@ -40,7 +56,7 @@
                     <button class="px-4 py-2 bg-nse-green-700 text-white rounded">Save Changes</button>
                 </div>
             </form>
-        </div>
+        </x-admin.panel>
 
         <div class="mt-4">
             <a href="{{ route('admin.registrations.export', ['format' => 'csv']) }}" class="inline-block bg-gray-200 px-3 py-2">Export CSV</a>

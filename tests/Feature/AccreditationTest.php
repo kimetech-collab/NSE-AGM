@@ -47,6 +47,79 @@ class AccreditationTest extends TestCase
             ->assertSessionHas('scan_result');
     }
 
+    public function test_admin_scan_endpoint_returns_json_for_fetch_requests()
+    {
+        $admin = User::factory()->create([
+            'role' => 'accreditation_officer',
+            'two_factor_confirmed_at' => now(),
+        ]);
+
+        $pv = PricingVersion::create(['version_name' => 'mvp']);
+        PricingItem::create([
+            'pricing_version_id' => $pv->id,
+            'name' => 'Standard',
+            'price_cents' => 1500000,
+            'currency' => 'NGN',
+        ]);
+
+        $registration = Registration::create([
+            'name' => 'JSON User',
+            'email' => 'jsonqr@example.com',
+            'is_member' => false,
+            'pricing_item_id' => 1,
+            'price_cents' => 1500000,
+            'currency' => 'NGN',
+            'payment_status' => 'paid',
+        ]);
+
+        $token = app(QRService::class)->generateToken($registration);
+
+        $this->actingAs($admin)
+            ->postJson(route('admin.accreditation.scan'), ['token' => $token])
+            ->assertOk()
+            ->assertJson([
+                'ok' => true,
+                'status' => 'valid',
+            ]);
+    }
+
+    public function test_admin_can_scan_full_ticket_url()
+    {
+        $admin = User::factory()->create([
+            'role' => 'accreditation_officer',
+            'two_factor_confirmed_at' => now(),
+        ]);
+
+        $pv = PricingVersion::create(['version_name' => 'mvp']);
+        PricingItem::create([
+            'pricing_version_id' => $pv->id,
+            'name' => 'Standard',
+            'price_cents' => 1500000,
+            'currency' => 'NGN',
+        ]);
+
+        $registration = Registration::create([
+            'name' => 'URL User',
+            'email' => 'urlqr@example.com',
+            'is_member' => false,
+            'pricing_item_id' => 1,
+            'price_cents' => 1500000,
+            'currency' => 'NGN',
+            'payment_status' => 'paid',
+        ]);
+
+        $token = app(QRService::class)->generateToken($registration);
+        $fullUrl = url('/ticket/' . $token);
+
+        $this->actingAs($admin)
+            ->postJson(route('admin.accreditation.scan'), ['token' => $fullUrl])
+            ->assertOk()
+            ->assertJson([
+                'ok' => true,
+                'status' => 'valid',
+            ]);
+    }
+
     public function test_offline_cache_returns_paid_registrations()
     {
         $admin = User::factory()->create([

@@ -8,6 +8,7 @@ use App\Models\PaymentTransaction;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
 use App\Services\PaymentService;
+use App\Support\EventDates;
 
 class PaymentController extends Controller
 {
@@ -16,12 +17,34 @@ class PaymentController extends Controller
     {
         $registrationId = (int)$request->input('registrationId');
         $registration = Registration::findOrFail($registrationId);
-        return view('payment', ['registration' => $registration]);
+        $registrationWindowOpen = EventDates::registrationWindowOpen();
+
+        return view('payment', [
+            'registration' => $registration,
+            'registrationWindowOpen' => $registrationWindowOpen,
+            'registrationOpenAt' => EventDates::registrationOpenAt(),
+            'registrationCloseAt' => EventDates::registrationCloseAt(),
+        ]);
     }
 
     // Initiate payment: create transaction and return Paystack checkout URL
     public function initiate(Request $request)
     {
+        if (! EventDates::registrationWindowOpen()) {
+            $message = 'Payment initiation is currently unavailable. Registration window: ' .
+                EventDates::registrationOpenAt()->format('M j, Y g:i A') . ' to ' .
+                EventDates::registrationCloseAt()->format('M j, Y g:i A') . '.';
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message,
+                ], 422);
+            }
+
+            return redirect()->back()->with('error', $message);
+        }
+
         $registrationId = (int)$request->input('registration_id');
         $registration = Registration::findOrFail($registrationId);
 

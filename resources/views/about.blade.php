@@ -1,8 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'About the AGM — NSE 59th Annual General Meeting & Conference 2026')
+@section('title', 'About the AGM — NSE 59th Annual General Meeting & Conference')
 
 @section('content')
+@php
+    $eventStartAt = \App\Support\EventDates::get('event_start_at');
+    $eventEndAt = \App\Support\EventDates::get('event_end_at');
+@endphp
 
 {{-- ═══════════════════════════════════════════════════════════════════
      HERO SECTION
@@ -63,7 +67,7 @@
                     <h3 class="text-lg font-bold text-nse-neutral-900">Dates & Venue</h3>
                 </div>
                 <div class="space-y-2 text-sm">
-                    <p><span class="font-semibold text-nse-neutral-900">November 1–4, 2026</span></p>
+                    <p><span class="font-semibold text-nse-neutral-900">{{ $eventStartAt->format('F j') }}–{{ $eventEndAt->format('j, Y') }}</span></p>
                     <p class="text-nse-neutral-600">The Pinnacle Function Centre</p>
                     <p class="text-nse-neutral-600">Maiduguri, Borno State</p>
                     <p class="text-nse-neutral-600">Nigeria</p>
@@ -96,7 +100,7 @@
                 </div>
                 <div class="space-y-2 text-sm">
                     <p class="text-nse-neutral-600">Organized by the</p>
-                    <p><span class="font-semibold text-nse-neutral-900">Nigerian Society of Engineers</span></p>
+                    <p><span class="font-semibold text-nse-neutral-900 font-english-gothic">Nigerian Society of Engineers</span></p>
                     <p class="text-nse-neutral-600 text-xs mt-2">Established 1954 · Registered body of engineering professionals in Nigeria</p>
                 </div>
             </div>
@@ -115,7 +119,7 @@
 
         <div class="prose prose-sm max-w-none space-y-6 text-nse-neutral-700">
             <p class="leading-relaxed">
-                The Nigerian Society of Engineers Annual General Meeting and International Conference is the premier gathering of the engineering community in West Africa. For nearly seven decades, the NSE AGM has brought together engineering professionals, academics, industry leaders, government officials, and development partners to discuss critical issues affecting the engineering profession and the nation's development trajectory.
+                <span class="font-english-gothic">Nigerian Society of Engineers</span> Annual General Meeting and International Conference is the premier gathering of the engineering community in West Africa. For nearly seven decades, the NSE AGM has brought together engineering professionals, academics, industry leaders, government officials, and development partners to discuss critical issues affecting the engineering profession and the nation's development trajectory.
             </p>
 
             <p class="leading-relaxed">
@@ -243,7 +247,7 @@
                 <h2 id="about-nse" class="text-2xl font-bold text-nse-neutral-900 mb-4">About the NSE</h2>
                 <div class="prose prose-sm max-w-none space-y-4 text-nse-neutral-700">
                     <p>
-                        The <strong>Nigerian Society of Engineers (NSE)</strong> was established in 1954 as a professional body to unite and advance the interests of engineering professionals in Nigeria. Today, with over 100,000 registered members spanning all engineering disciplines, the NSE is the recognized voice of the engineering profession in Nigeria.
+                        The <strong><span class="font-english-gothic">Nigerian Society of Engineers</span> (NSE)</strong> was established in 1954 as a professional body to unite and advance the interests of engineering professionals in Nigeria. Today, with over 100,000 registered members spanning all engineering disciplines, the NSE is the recognized voice of the engineering profession in Nigeria.
                     </p>
                     <p>
                         The Society provides a platform for:

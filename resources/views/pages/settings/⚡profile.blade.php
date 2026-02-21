@@ -31,7 +31,10 @@ new class extends Component {
     {
         $user = Auth::user();
 
-        $validated = $this->validate($this->profileRules($user->id));
+        $validated = $this->validate([
+            'name' => $this->nameRules(),
+            'email' => $this->emailRules($user->id),
+        ]);
 
         $user->fill($validated);
 

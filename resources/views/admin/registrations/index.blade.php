@@ -1,10 +1,14 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('content')
+@section('admin_content')
     <div class="p-6">
-        <h1 class="text-2xl font-bold mb-4">Registrations</h1>
+        <x-admin.page-header
+            title="Registrations"
+            subtitle="Manage participant records, filters, and exports."
+        />
 
-        <form method="GET" class="bg-white p-4 rounded border border-nse-neutral-200 mb-4">
+        <x-admin.filter-bar>
+        <form method="GET">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                     <label class="block text-xs text-nse-neutral-600 mb-1">Search</label>
@@ -37,11 +41,11 @@
                 </div>
                 <div>
                     <label class="block text-xs text-nse-neutral-600 mb-1">Date from</label>
-                    <input type="date" name="date_from" value="{{ request('date_from') }}" class="w-full border rounded px-3 py-2 text-sm">
+                    <input type="date" name="date_from" value="{{ request('date_from') }}" data-picker="date" class="w-full border rounded px-3 py-2 text-sm">
                 </div>
                 <div>
                     <label class="block text-xs text-nse-neutral-600 mb-1">Date to</label>
-                    <input type="date" name="date_to" value="{{ request('date_to') }}" class="w-full border rounded px-3 py-2 text-sm">
+                    <input type="date" name="date_to" value="{{ request('date_to') }}" data-picker="date" class="w-full border rounded px-3 py-2 text-sm">
                 </div>
                 <div class="flex items-end gap-2">
                     <button class="px-4 py-2 bg-nse-green-700 text-white text-sm rounded">Filter</button>
@@ -53,8 +57,9 @@
                 </div>
             </div>
         </form>
+        </x-admin.filter-bar>
 
-        <table class="min-w-full bg-white">
+        <x-admin.table tableClass="min-w-full bg-white">
             <thead>
                 <tr>
                     <th class="px-4 py-2">ID</th>
@@ -81,8 +86,8 @@
                     </tr>
                 @endforeach
             </tbody>
-        </table>
+        </x-admin.table>
 
-        <div class="mt-4">{{ $registrations->links() }}</div>
+        <x-admin.pagination-footer :paginator="$registrations" />
     </div>
 @endsection

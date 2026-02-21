@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Registration Pricing — NSE 59th AGM & Conference 2026')
+@section('title', 'Registration Pricing — NSE 59th AGM & Conference')
 
 @section('content')
 
@@ -9,8 +9,7 @@
     PRICING DATA
     All amounts are in kobo (₦ * 100) internally but displayed as ₦.
     Values are ₦0 — admin-configurable via /admin/pricing after portal launch.
-    Early bird deadline: April 28, 2026.
-    Registration close: October 25, 2026.
+    Date boundaries are controlled in /admin/settings.
 */
 $categories = [
     [
@@ -37,7 +36,7 @@ $categories = [
         'name'        => 'Corporate Member',
         'abbr'        => 'CORPORATE',
         'is_member'   => true,
-        'description' => 'Full corporate members (MNSE) of the Nigerian Society of Engineers — professionals who have met the required years of post-qualification experience.',
+        'description' => 'Full corporate members (MNSE) of the <span class="font-english-gothic">Nigerian Society of Engineers</span> — professionals who have met the required years of post-qualification experience.',
         'p_early'     => 0,
         'p_standard'  => 0,
         'v_early'     => 0,
@@ -47,7 +46,7 @@ $categories = [
         'name'        => 'Fellow',
         'abbr'        => 'FELLOW',
         'is_member'   => true,
-        'description' => 'Fellows of the Nigerian Society of Engineers (FNSE) — the highest membership grade, conferred in recognition of distinguished engineering contribution.',
+        'description' => 'Fellows of the <span class="font-english-gothic">Nigerian Society of Engineers</span> (FNSE) — the highest membership grade, conferred in recognition of distinguished engineering contribution.',
         'p_early'     => 0,
         'p_standard'  => 0,
         'v_early'     => 0,
@@ -65,8 +64,13 @@ $categories = [
     ],
 ];
 
-$earlyBirdDeadline = '2026-04-28';
-$earlyBirdActive   = now()->lt(\Carbon\Carbon::parse($earlyBirdDeadline)->endOfDay());
+$earlyBirdDeadlineAt = \App\Support\EventDates::get('early_bird_deadline_at');
+$registrationCloseAt = \App\Support\EventDates::get('registration_close_at');
+$registrationOpenAt = \App\Support\EventDates::get('registration_open_at');
+$eventStartAt = \App\Support\EventDates::get('event_start_at');
+$eventEndAt = \App\Support\EventDates::get('event_end_at');
+$standardStartAt = $earlyBirdDeadlineAt->copy()->addDay();
+$earlyBirdActive = now()->lt($earlyBirdDeadlineAt);
 @endphp
 
 
@@ -95,7 +99,7 @@ $earlyBirdActive   = now()->lt(\Carbon\Carbon::parse($earlyBirdDeadline)->endOfD
                     Pricing &amp; Registration Categories
                 </h1>
                 <p class="text-nse-neutral-400 text-sm sm:text-base">
-                    NSE 59th AGM &amp; International Conference &middot; November 1–4, 2026
+                    NSE 59th AGM &amp; International Conference &middot; {{ $eventStartAt->format('F j') }}–{{ $eventEndAt->format('j, Y') }}
                 </p>
             </div>
 
@@ -107,7 +111,7 @@ $earlyBirdActive   = now()->lt(\Carbon\Carbon::parse($earlyBirdDeadline)->endOfD
                     urgency: 'gold',
                     init() { this.tick(); setInterval(() => this.tick(), 1000); },
                     tick() {
-                        const diff = new Date('2026-04-28T23:59:59').getTime() - Date.now();
+                        const diff = new Date('{{ $earlyBirdDeadlineAt->format('Y-m-d\\TH:i:s') }}').getTime() - Date.now();
                         if (diff <= 0) { this.days = this.hours = this.mins = this.secs = '00'; return; }
                         const d = Math.floor(diff / 86400000);
                         this.days  = String(d).padStart(2, '0');
@@ -169,8 +173,8 @@ $earlyBirdActive   = now()->lt(\Carbon\Carbon::parse($earlyBirdDeadline)->endOfD
                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
             </svg>
             <div>
-                <p class="text-sm font-semibold text-nse-gold-700">Early Bird Pricing Active &mdash; Deadline: April 28, 2026</p>
-                <p class="text-xs text-nse-gold-700/80 mt-0.5">Your price is locked at your <strong>registration date</strong>, not your payment date. Register now to secure the early bird rate, then complete payment at any time before October 25, 2026.</p>
+                <p class="text-sm font-semibold text-nse-gold-700">Early Bird Pricing Active &mdash; Deadline: {{ $earlyBirdDeadlineAt->format('F j, Y') }}</p>
+                <p class="text-xs text-nse-gold-700/80 mt-0.5">Your price is locked at your <strong>registration date</strong>, not your payment date. Register now to secure the early bird rate, then complete payment at any time before {{ $registrationCloseAt->format('F j, Y') }}.</p>
             </div>
         </div>
         @endif
@@ -181,7 +185,7 @@ $earlyBirdActive   = now()->lt(\Carbon\Carbon::parse($earlyBirdDeadline)->endOfD
                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
             </svg>
             <p class="text-xs text-nse-info">
-                <strong>Registration fees are being finalised.</strong> All amounts shown as &#8358;0 are placeholders and will be updated by the NSE Secretariat before the portal launch on February 28, 2026. Registered participants will be notified of confirmed prices.
+                <strong>Registration fees are being finalised.</strong> All amounts shown as &#8358;0 are placeholders and will be updated by the NSE Secretariat before the portal launch on {{ $registrationOpenAt->format('F j, Y') }}. Registered participants will be notified of confirmed prices.
             </p>
         </div>
 
@@ -210,12 +214,12 @@ $earlyBirdActive   = now()->lt(\Carbon\Carbon::parse($earlyBirdDeadline)->endOfD
         <div class="hidden sm:flex items-center gap-4 mb-4 flex-wrap">
             <div class="flex items-center gap-1.5">
                 <span class="inline-flex px-2 py-0.5 bg-nse-gold-50 text-nse-gold-700 text-[10px] font-bold border border-nse-gold-500 rounded">EARLY BIRD</span>
-                <span class="text-nse-neutral-400 text-xs">Rate until April 28, 2026</span>
+                <span class="text-nse-neutral-400 text-xs">Rate until {{ $earlyBirdDeadlineAt->format('F j, Y') }}</span>
             </div>
             <span class="text-nse-neutral-200 text-xs" aria-hidden="true">|</span>
             <div class="flex items-center gap-1.5">
                 <span class="inline-flex px-2 py-0.5 bg-nse-neutral-100 text-nse-neutral-400 text-[10px] font-medium border border-nse-neutral-200 rounded">STANDARD</span>
-                <span class="text-nse-neutral-400 text-xs">Rate from April 29 to October 25, 2026</span>
+                <span class="text-nse-neutral-400 text-xs">Rate from {{ $standardStartAt->format('F j') }} to {{ $registrationCloseAt->format('F j, Y') }}</span>
             </div>
         </div>
 
@@ -335,7 +339,7 @@ $earlyBirdActive   = now()->lt(\Carbon\Carbon::parse($earlyBirdDeadline)->endOfD
                                             role="tooltip"
                                         >
                                             <div class="absolute -top-1.5 left-2.5 w-3 h-3 bg-nse-neutral-900 rotate-45 rounded-sm" aria-hidden="true"></div>
-                                            {{ $cat['description'] }}
+                                            {!! $cat['description'] !!}
                                         </div>
                                     </div>
                                 </div>
@@ -385,8 +389,8 @@ $earlyBirdActive   = now()->lt(\Carbon\Carbon::parse($earlyBirdDeadline)->endOfD
                         <tr>
                             <td colspan="5" class="py-3 px-4 border border-nse-neutral-200 bg-nse-neutral-50">
                                 <p class="text-xs text-nse-neutral-400">
-                                    <span class="font-semibold text-nse-neutral-600">Registration closes:</span> October 25, 2026 &middot;
-                                    <span class="font-semibold text-nse-neutral-600">Early bird deadline:</span> April 28, 2026 (based on registration timestamp) &middot;
+                                    <span class="font-semibold text-nse-neutral-600">Registration closes:</span> {{ $registrationCloseAt->format('F j, Y') }} &middot;
+                                    <span class="font-semibold text-nse-neutral-600">Early bird deadline:</span> {{ $earlyBirdDeadlineAt->format('F j, Y') }} (based on registration timestamp) &middot;
                                     All fees are non-refundable after 7 days of registration unless otherwise determined by NSE.
                                 </p>
                             </td>
@@ -504,11 +508,11 @@ $earlyBirdActive   = now()->lt(\Carbon\Carbon::parse($earlyBirdDeadline)->endOfD
         $faqs = [
             [
                 'q' => 'When does early bird pricing end?',
-                'a' => 'Early bird pricing is available for registrations completed before April 28, 2026 (11:59 PM). The date your registration is submitted — not the date you complete payment — determines your price tier. If you register before April 28, your early bird rate is locked even if you pay after that date.',
+                'a' => 'Early bird pricing is available for registrations completed before ' . $earlyBirdDeadlineAt->format('F j, Y \\a\\t g:i A') . '. The date your registration is submitted — not the date you complete payment — determines your price tier. If you register before the deadline, your early bird rate is locked even if you pay after that date.',
             ],
             [
                 'q' => 'Can I register now and pay later?',
-                'a' => 'Yes. Once you complete the registration form and verify your email, your registration is recorded and your price is locked. You can return to complete payment at any time before the registration close date of October 25, 2026.',
+                'a' => 'Yes. Once you complete the registration form and verify your email, your registration is recorded and your price is locked. You can return to complete payment at any time before the registration close date of ' . $registrationCloseAt->format('F j, Y') . '.',
             ],
             [
                 'q' => 'How do I prove my NSE membership?',
@@ -582,14 +586,14 @@ $earlyBirdActive   = now()->lt(\Carbon\Carbon::parse($earlyBirdDeadline)->endOfD
         @if($earlyBirdActive)
             <span class="inline-flex items-center gap-1.5 mb-4 px-3 py-1 bg-nse-gold-50/20 text-white text-xs font-semibold border border-white/20 rounded-full">
                 <span class="w-1.5 h-1.5 bg-nse-gold-500 rounded-full" aria-hidden="true"></span>
-                Early Bird Active &mdash; Ends April 28, 2026
+                Early Bird Active &mdash; Ends {{ $earlyBirdDeadlineAt->format('F j, Y') }}
             </span>
         @endif
         <h2 class="text-2xl sm:text-3xl font-bold text-white mb-3">
             Ready to secure your place at the 59th NSE AGM?
         </h2>
         <p class="text-white/70 text-base mb-8 max-w-xl mx-auto">
-            Register now. Your price is locked at registration — pay anytime before October 25, 2026.
+            Register now. Your price is locked at registration — pay anytime before {{ $registrationCloseAt->format('F j, Y') }}.
         </p>
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
             <a

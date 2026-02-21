@@ -30,6 +30,12 @@ class QRService
 
     public function validateToken(string $token): array
     {
+        $token = $this->normalizeToken($token);
+
+        if ($token === '') {
+            return ['ok' => false, 'status' => 'invalid', 'message' => 'Invalid QR token.'];
+        }
+
         $registration = Registration::where('ticket_token', $token)->first();
 
         if (! $registration) {
@@ -55,13 +61,63 @@ class QRService
                     'ok' => false,
                     'status' => 'already_checked_in',
                     'message' => 'Already checked in.',
-                    'registration' => $registration,
+                    'registration' => $this->formatRegistrationData($registration),
                     'first_scan_at' => $firstScan->scanned_at,
                 ];
             }
         }
 
-        return ['ok' => true, 'status' => 'valid', 'registration' => $registration];
+        return ['ok' => true, 'status' => 'valid', 'registration' => $this->formatRegistrationData($registration)];
+    }
+
+    protected function normalizeToken(string $value): string
+    {
+        $value = trim($value, " \t\n\r\0\x0B\"'");
+        if ($value === '') {
+            return '';
+        }
+
+        if (str_starts_with($value, '{')) {
+            $decoded = json_decode($value, true);
+            if (is_array($decoded) && ! empty($decoded['token']) && is_string($decoded['token'])) {
+                $value = trim($decoded['token']);
+            }
+        }
+
+        if (filter_var($value, FILTER_VALIDATE_URL)) {
+            $parts = parse_url($value);
+            if (! empty($parts['query'])) {
+                parse_str($parts['query'], $query);
+                if (! empty($query['token']) && is_string($query['token'])) {
+                    return trim($query['token']);
+                }
+            }
+
+            if (! empty($parts['path']) && preg_match('~\/ticket\/([^\/?\#]+)~', $parts['path'], $m)) {
+                return urldecode($m[1]);
+            }
+        }
+
+        if (preg_match('~\/ticket\/([^\/?\#]+)~', $value, $m)) {
+            return urldecode($m[1]);
+        }
+
+        return $value;
+    }
+
+    /**
+     * Format registration data for scan response
+     */
+    protected function formatRegistrationData(Registration $registration): array
+    {
+        return [
+            'id' => $registration->id,
+            'name' => $registration->name,
+            'email' => $registration->email,
+            'is_member' => $registration->is_member,
+            'membership_number' => $registration->membership_number,
+            'profile_photo_url' => $registration->profilePhotoUrl(),
+        ];
     }
 
     public function logScan(string $token, array $result, array $metadata = [], ?string $scannedAt = null): ?QrScan

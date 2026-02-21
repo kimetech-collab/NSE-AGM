@@ -7,6 +7,7 @@ use App\Models\PaymentTransaction;
 use App\Models\QrScan;
 use App\Models\Registration;
 use App\Models\CheckIn;
+use App\Support\EventDates;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -64,6 +65,16 @@ class DashboardController extends Controller
             // Attendance conversion
             $attendanceRate = $paid > 0 ? round(($uniqueParticipants / $paid) * 100) : 0;
 
+            $registrationOpenAt = EventDates::registrationOpenAt();
+            $registrationCloseAt = EventDates::registrationCloseAt();
+            $now = now();
+            $registrationWindowOpen = EventDates::registrationWindowOpen();
+            $registrationPhase = $now->lt($registrationOpenAt)
+                ? 'upcoming'
+                : ($now->gt($registrationCloseAt) ? 'closed' : 'open');
+            $daysToOpen = $now->lt($registrationOpenAt) ? (int) ceil($now->diffInHours($registrationOpenAt) / 24) : 0;
+            $daysToClose = $now->lt($registrationCloseAt) ? (int) ceil($now->diffInHours($registrationCloseAt) / 24) : 0;
+
             return [
                 'total' => $total,
                 'paid' => $paid,
@@ -81,6 +92,12 @@ class DashboardController extends Controller
                 'qrScansToday' => $qrScansToday,
                 'labels' => $labels,
                 'series' => $series,
+                'registrationWindowOpen' => $registrationWindowOpen,
+                'registrationPhase' => $registrationPhase,
+                'registrationOpenAt' => $registrationOpenAt,
+                'registrationCloseAt' => $registrationCloseAt,
+                'daysToOpen' => $daysToOpen,
+                'daysToClose' => $daysToClose,
             ];
         });
 

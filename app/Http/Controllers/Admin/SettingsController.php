@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\SystemSetting;
 use App\Services\AuditService;
+use App\Support\EventDates;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 
@@ -22,6 +23,8 @@ class SettingsController extends Controller
                 ->with('error', 'System settings table not found. Run migrations.');
         }
 
+        $this->seedMissingDateSettings();
+
         $keys = $this->keys();
         $settings = SystemSetting::whereIn('key', $keys)->pluck('value', 'key');
 
@@ -35,7 +38,11 @@ class SettingsController extends Controller
         }
 
         $data = $request->validate([
-            'event_end_at' => 'nullable|date',
+            'registration_open_at' => 'nullable|date',
+            'early_bird_deadline_at' => 'nullable|date|after_or_equal:registration_open_at',
+            'registration_close_at' => 'nullable|date|after_or_equal:early_bird_deadline_at',
+            'event_start_at' => 'nullable|date|after_or_equal:registration_open_at',
+            'event_end_at' => 'nullable|date|after_or_equal:event_start_at',
             'stream_enabled' => 'required|in:0,1',
             'stream_platform' => 'nullable|string|max:32',
             'stream_primary_url' => 'nullable|url|max:1000',
@@ -51,7 +58,11 @@ class SettingsController extends Controller
             ->toArray();
 
         foreach ($data as $key => $value) {
-            SystemSetting::updateOrCreate(['key' => $key], ['value' => (string) $value]);
+            SystemSetting::updateOrCreate([
+                'key' => $key,
+            ], [
+                'value' => ($value === null || $value === '') ? null : (string) $value,
+            ]);
         }
 
         $after = SystemSetting::whereIn('key', array_keys($data))
@@ -74,6 +85,10 @@ class SettingsController extends Controller
     protected function keys(): array
     {
         return [
+            'registration_open_at',
+            'early_bird_deadline_at',
+            'registration_close_at',
+            'event_start_at',
             'event_end_at',
             'stream_enabled',
             'stream_platform',
@@ -84,5 +99,21 @@ class SettingsController extends Controller
             'certificate_public_verify_enabled',
             'certificate_release_mode',
         ];
+    }
+
+    protected function seedMissingDateSettings(): void
+    {
+        foreach (EventDates::keys() as $key) {
+            $existing = SystemSetting::where('key', $key)->value('value');
+
+            if (is_string($existing) && trim($existing) !== '') {
+                continue;
+            }
+
+            SystemSetting::updateOrCreate(
+                ['key' => $key],
+                ['value' => EventDates::value($key)]
+            );
+        }
     }
 }

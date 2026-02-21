@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\AuditService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class UsersController extends Controller
@@ -32,6 +34,48 @@ class UsersController extends Controller
 
         return view('admin.users.index', [
             'users' => $query->orderByDesc('id')->paginate(25)->withQueryString(),
+            'roles' => $this->roles(),
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'role' => ['required', 'string', Rule::in(array_keys($this->roles()))],
+        ]);
+
+        // Generate a random password
+        $password = Str::random(length: 8);
+        
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'role' => $data['role'],
+            'password' => Hash::make($password),
+        ]);
+
+        if (\Illuminate\Support\Facades\Schema::hasTable('audit_logs')) {
+            $this->audit->logUser('user_created', $user->id, [
+                'created_by' => $request->user()->id,
+                'role' => $data['role'],
+            ], null, $user->toArray());
+        }
+
+        return redirect()->back()->with('success', "User created successfully. Email: {$user->email}, Temporary Password: {$password}");
+    }
+
+    public function show(User $user)
+    {
+        $user->load([
+            'registrations' => function ($query) {
+                $query->orderByDesc('created_at');
+            },
+        ]);
+
+        return view('admin.users.show', [
+            'user' => $user,
             'roles' => $this->roles(),
         ]);
     }

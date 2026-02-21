@@ -8,6 +8,7 @@ use App\Events\RegistrationCreated;
 use App\Events\RegistrationOtpResent;
 use App\Services\RegistrationService;
 use App\Services\TicketPdfService;
+use App\Support\EventDates;
 use App\Models\Registration;
 use App\Models\PricingItem;
 use Illuminate\Http\Request;
@@ -29,15 +30,38 @@ class RegistrationController extends Controller
     public function show(): \Illuminate\Contracts\View\View
     {
         $pricingItems    = PricingItem::orderBy('name')->get();
-        $earlyBirdActive = now()->lt(\Carbon\Carbon::parse('2026-04-28')->endOfDay());
+        $earlyBirdActive = EventDates::earlyBirdActive();
+        $registrationWindowOpen = EventDates::registrationWindowOpen();
+        $registrationOpenAt = EventDates::registrationOpenAt();
+        $registrationCloseAt = EventDates::registrationCloseAt();
 
-        return view('register', compact('pricingItems', 'earlyBirdActive'));
+        return view('register', compact(
+            'pricingItems',
+            'earlyBirdActive',
+            'registrationWindowOpen',
+            'registrationOpenAt',
+            'registrationCloseAt'
+        ));
     }
 
     // Handle registration submission
     public function register(RegisterRequest $request)
     {
+        if (! EventDates::registrationWindowOpen()) {
+            return redirect()
+                ->route('register')
+                ->with('error', 'Registration is currently closed. Registration window: ' .
+                    EventDates::registrationOpenAt()->format('M j, Y g:i A') . ' to ' .
+                    EventDates::registrationCloseAt()->format('M j, Y g:i A') . '.');
+        }
+
         $data = $request->validated();
+
+        // Handle profile photo upload
+        if ($request->hasFile('profile_photo')) {
+            $path = $request->file('profile_photo')->store('profile-photos', 'public');
+            $data['profile_photo'] = $path;
+        }
 
         // Compatibility path for auth starter-kit registration tests.
         if (! empty($data['password']) && empty($data['pricing_item_id'])) {
@@ -49,6 +73,7 @@ class RegistrationController extends Controller
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => $data['password'],
+                'profile_photo' => $data['profile_photo'] ?? null,
             ]);
 
             Auth::login($user);
@@ -145,10 +170,36 @@ class RegistrationController extends Controller
     public function status(Request $request)
     {
         $user = Auth::user();
-        $registrations = Registration::where('email', $user->email)->get();
+        $registration = Registration::where('email', $user->email)
+            ->with('certificate')
+            ->first();
 
-        return view('registration.status', [
-            'registrations' => $registrations,
+        if (!$registration) {
+            return redirect()->route('register')->with('error', 'No registration found for your account.');
+        }
+
+        $hasCertificate = $registration->certificate && $registration->certificate->status === 'issued';
+        $certificate = $registration->certificate;
+        $nextStep = 1;
+
+        if ($registration->email_verified_at) {
+            $nextStep = 2;
+        }
+        if ($registration->payment_status === 'paid') {
+            $nextStep = 3;
+        }
+        if (in_array($registration->attendance_status, ['physical', 'virtual'])) {
+            $nextStep = 4;
+        }
+        if ($hasCertificate) {
+            $nextStep = 5;
+        }
+
+        return view('registration-status', [
+            'registration' => $registration,
+            'certificate' => $certificate,
+            'hasCertificate' => $hasCertificate,
+            'nextStep' => $nextStep,
             'user' => $user,
         ]);
     }

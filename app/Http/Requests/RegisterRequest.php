@@ -32,6 +32,7 @@ class RegisterRequest extends FormRequest
             'first_name' => 'required_without:name|string|max:128',
             'surname' => 'required_without:name|string|max:128',
             'email' => 'required|email|max:255',
+            'profile_photo' => 'required|image|mimes:jpeg,png,jpg|max:1048',
             'is_member' => 'sometimes|boolean',
             'membership_number' => 'nullable|string|max:64',
             'pricing_item_id' => $isAuthRegistration ? 'nullable|integer|exists:pricing_items,id' : 'required|integer|exists:pricing_items,id',

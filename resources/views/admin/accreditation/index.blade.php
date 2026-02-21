@@ -1,19 +1,21 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('content')
+@section('admin_content')
     <div class="p-6 max-w-5xl mx-auto">
-        <h1 class="text-2xl font-bold mb-2">Accreditation Scanner</h1>
-        <p class="text-sm text-nse-neutral-600 mb-6">Scan attendee QR codes for instant check-in validation.</p>
+        <x-admin.page-header
+            title="Accreditation Scanner"
+            subtitle="Scan attendee QR codes for instant check-in validation."
+        />
 
         {{-- Full-Screen Overlay (hidden by default) --}}
-        <div id="scan-overlay" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="opacity: 0.95;">
+        <div id="scan-overlay" class="invisible fixed inset-0 z-50 flex items-center justify-center" style="opacity: 0.95;">
             <div class="text-center text-white">
                 <div id="overlay-content"></div>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white border border-nse-neutral-200 rounded-lg p-4">
+            <x-admin.panel class="p-4">
                 <h2 class="text-sm font-semibold mb-3">Camera Scan</h2>
                 <div class="relative bg-nse-neutral-50 border border-nse-neutral-200 rounded-lg overflow-hidden">
                     <video id="qr-video" class="w-full h-64 object-cover" autoplay muted playsinline></video>
@@ -24,9 +26,9 @@
                     <button id="qr-stop" type="button" class="px-3 py-2 bg-nse-neutral-50 border rounded text-sm">Stop</button>
                 </div>
                 <p class="text-xs text-nse-neutral-600 mt-2">Uses native BarcodeDetector when available. Fallback to manual entry if unsupported.</p>
-            </div>
+            </x-admin.panel>
 
-            <div class="bg-white border border-nse-neutral-200 rounded-lg p-4">
+            <x-admin.panel class="p-4">
                 <h2 class="text-sm font-semibold mb-3">Manual Scan</h2>
                 <form id="manual-scan-form" class="flex gap-3">
                     @csrf
@@ -37,10 +39,10 @@
                 <div class="mt-6 text-sm">
                     <a class="text-nse-green-700 underline" href="{{ route('admin.accreditation.offline') }}">Download offline cache (JSON)</a>
                 </div>
-            </div>
+            </x-admin.panel>
         </div>
 
-        <div class="mt-8 bg-white border border-nse-neutral-200 rounded-lg p-4">
+        <x-admin.panel class="mt-8 p-4">
             <h2 class="text-sm font-semibold mb-3">Offline Sync</h2>
             <p class="text-xs text-nse-neutral-600 mb-3">Upload scan JSON from offline devices to sync check-ins.</p>
             <textarea id="offline-json" class="w-full border rounded p-2 text-xs h-32" placeholder='{"scans":[{"token":"...","scanned_at":"2026-02-18T09:30:00Z","meta":{"device":"tablet-1"}}]}'></textarea>
@@ -48,7 +50,7 @@
                 <button id="offline-sync" type="button" class="px-3 py-2 bg-nse-green-700 text-white rounded text-sm">Sync Offline Scans</button>
                 <span id="offline-status" class="text-xs text-nse-neutral-600"></span>
             </div>
-        </div>
+        </x-admin.panel>
     </div>
 
     <script>
@@ -68,7 +70,10 @@
             function getOverlayHTML(result) {
                 const status = result.status || '';
                 const message = result.message || '';
-                const name = result.registration?.name || '';
+                const registration = result.registration || {};
+                const name = registration.name || '';
+                const membershipNumber = registration.membership_number || '';
+                const profilePhotoUrl = registration.profile_photo_url || '';
                 const firstScan = result.first_scan_at || '';
                 
                 let icon = '';
@@ -103,12 +108,32 @@
                 }
 
                 scanOverlay.className = `fixed inset-0 z-50 flex items-center justify-center ${color}`;
+                
+                // Build participant info section
+                let participantInfo = '';
+                if (name) {
+                    participantInfo += `<div class="flex flex-col items-center mb-4">`;
+                    
+                    // Profile photo
+                    if (profilePhotoUrl) {
+                        participantInfo += `<img src="${profilePhotoUrl}" alt="${name}" class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg mb-3" />`;
+                    }
+                    
+                    // Name and membership
+                    participantInfo += `<p class="text-2xl font-semibold mb-1">${name}</p>`;
+                    if (membershipNumber) {
+                        participantInfo += `<p class="text-lg opacity-90 mb-2">Member: ${membershipNumber}</p>`;
+                    }
+                    
+                    participantInfo += `</div>`;
+                }
+                
                 return `
                     <div class="mb-6">
                         ${icon}
                         <h2 class="text-4xl font-bold mb-2">${title}</h2>
                     </div>
-                    ${name ? `<p class="text-2xl font-semibold mb-3">${name}</p>` : ''}
+                    ${participantInfo}
                     <p class="text-lg opacity-90">${message}</p>
                     ${firstScan ? `<p class="text-sm opacity-75 mt-3">First check-in: ${firstScan}</p>` : ''}
                     <p class="text-xs opacity-60 mt-6">Closes automatically in a few seconds...</p>
@@ -117,11 +142,11 @@
 
             function showOverlay(result) {
                 overlayContent.innerHTML = getOverlayHTML(result);
-                scanOverlay.classList.remove('hidden');
+                scanOverlay.classList.remove('invisible');
                 
                 if (dismissTimeout) clearTimeout(dismissTimeout);
                 dismissTimeout = setTimeout(() => {
-                    scanOverlay.classList.add('hidden');
+                    scanOverlay.classList.add('invisible');
                     startCamera();
                 }, 4000);
             }
@@ -187,7 +212,7 @@
             startBtn?.addEventListener('click', startCamera);
             stopBtn?.addEventListener('click', stopCamera);
             scanOverlay?.addEventListener('click', () => {
-                scanOverlay.classList.add('hidden');
+                scanOverlay.classList.add('invisible');
                 startCamera();
             });
 

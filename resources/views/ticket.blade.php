@@ -1,10 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'Your Accreditation Ticket — NSE 59th AGM & Conference 2026')
+@section('title', 'Your Accreditation Ticket — NSE 59th AGM & Conference')
 
 @section('content')
 
 @php
+    $eventStartAt = \App\Support\EventDates::get('event_start_at');
+    $eventEndAt = \App\Support\EventDates::get('event_end_at');
     $statusColor = match(strtolower($registration->payment_status ?? 'unknown')) {
         'paid' => ['bg' => 'nse-green-50', 'text' => 'nse-green-700', 'badge' => 'nse-green-100', 'label' => 'Valid'],
         'pending', 'processing', 'initialized' => ['bg' => 'nse-warning-bg', 'text' => 'nse-warning', 'badge' => 'nse-warning-bg', 'label' => 'Pending'],
@@ -20,7 +22,7 @@
         <div class="mb-8">
             <p class="text-nse-gold-700 text-xs font-bold uppercase tracking-widest mb-1">Accreditation</p>
             <h1 id="ticket-heading" class="text-2xl sm:text-3xl font-bold text-nse-neutral-900 leading-tight">Your Accreditation Ticket</h1>
-            <p class="text-nse-neutral-500 text-sm mt-2">NSE 59th Annual General Meeting & International Conference · November 1–4, 2026</p>
+            <p class="text-nse-neutral-500 text-sm mt-2">NSE 59th Annual General Meeting & International Conference · {{ $eventStartAt->format('F j') }}–{{ $eventEndAt->format('j, Y') }}</p>
         </div>
 
         {{-- Main Ticket Card (QR + Details Two-column on desktop, stacked on mobile) --}}
@@ -49,6 +51,17 @@
 
                     {{-- Participant Info --}}
                     <div class="space-y-4 pt-3 border-t border-nse-neutral-200">
+                        <!-- Profile Photo -->
+                        @if($registration->profile_photo)
+                        <div class="flex items-center gap-4">
+                            <img src="{{ $registration->profilePhotoUrl() }}" alt="{{ $registration->name }}" class="w-20 h-20 rounded-lg object-cover border-2 border-nse-green-200">
+                            <div>
+                                <p class="text-xs text-nse-neutral-500 uppercase tracking-widest mb-1">Participant Photo</p>
+                                <p class="text-sm text-nse-neutral-700">For identification purposes</p>
+                            </div>
+                        </div>
+                        @endif
+
                         <div>
                             <p class="text-xs text-nse-neutral-500 uppercase tracking-widest mb-1">Participant Name</p>
                             <p class="text-2xl font-bold text-nse-neutral-900">{{ $registration->name }}</p>
@@ -177,7 +190,7 @@
                     <h3 class="font-semibold text-nse-neutral-900">Event Dates</h3>
                 </div>
                 <p class="text-xs text-nse-neutral-600 leading-relaxed">
-                    <strong>November 1–4, 2026</strong><br/>
+                    <strong>{{ $eventStartAt->format('F j') }}–{{ $eventEndAt->format('j, Y') }}</strong><br/>
                     Maiduguri, Borno State, Nigeria
                 </p>
             </div>

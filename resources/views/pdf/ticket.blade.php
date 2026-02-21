@@ -29,7 +29,7 @@
 
         <div class="header">
             <div class="title">NSE AGM Accreditation Ticket</div>
-            <div class="subtitle">59th Annual General Meeting &amp; International Conference · November 1–4, 2026</div>
+            <div class="subtitle">59th Annual General Meeting &amp; International Conference · {{ \App\Support\EventDates::get('event_start_at')->format('F j') }}–{{ \App\Support\EventDates::get('event_end_at')->format('j, Y') }}</div>
         </div>
 
         @php
@@ -45,6 +45,14 @@
         <table class="grid">
             <tr>
                 <td style="width: 62%; padding-right: 16px;">
+                    @if($registration->profile_photo)
+                    <div class="section">
+                        <div class="label">Participant Photo</div>
+                        <div class="value">
+                            <img src="{{ $registration->profilePhotoUrl() }}" alt="{{ $registration->name }}" style="width: 80px; height: 80px; object-fit: cover; border: 2px solid #C8971F; border-radius: 4px; margin-top: 4px;">
+                        </div>
+                    </div>
+                    @endif
                     <div class="section">
                         <div class="label">Participant</div>
                         <div class="value">{{ $registration->name }}</div>

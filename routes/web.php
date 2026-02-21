@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Middleware\EnsureAdminMfa;
 use App\Http\Middleware\VerifyPaystackSignature;
+use App\Http\Middleware\LogAdminRouteAccess;
 use App\Models\Sponsor;
 use Illuminate\Support\Facades\Schema;
 
@@ -75,6 +76,29 @@ Route::get('/sponsors', function () {
     return view('sponsors', ['sponsors' => $sponsors]);
 })->name('sponsors');
 
+// Speakers page
+Route::get('/speakers', function () {
+    $speakers = collect();
+    $keynote_speakers = collect();
+    $invited_speakers = collect();
+
+    if (Schema::hasTable('speakers')) {
+        $speakers = \App\Models\Speaker::query()
+            ->active()
+            ->ordered()
+            ->get();
+
+        $keynote_speakers = $speakers->where('is_keynote', true);
+        $invited_speakers = $speakers->where('is_keynote', false);
+    }
+
+    return view('speakers', [
+        'speakers' => $speakers,
+        'keynote_speakers' => $keynote_speakers,
+        'invited_speakers' => $invited_speakers,
+    ]);
+})->name('speakers');
+
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
@@ -141,7 +165,7 @@ Route::get('verify/{certificateId}', [\App\Http\Controllers\CertificateControlle
     ->name('certificate.verify');
 
 // Admin routes (basic)
-Route::prefix('admin')->name('admin.')->middleware(['auth','verified', EnsureAdminMfa::class, 'role:super_admin,finance_admin,registration_admin,accreditation_officer,support_agent'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth','verified', EnsureAdminMfa::class, 'role:super_admin,finance_admin,registration_admin,accreditation_officer,support_agent', LogAdminRouteAccess::class])->group(function () {
     Route::get('dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])
         ->middleware('role:super_admin,finance_admin,registration_admin,accreditation_officer,support_agent')
         ->name('dashboard');
@@ -167,6 +191,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','verified', EnsureAdm
     Route::post('finance/refund/{id}', [\App\Http\Controllers\Admin\FinanceController::class, 'refund'])
         ->middleware('role:super_admin,finance_admin')
         ->name('finance.refund');
+    Route::get('finance/export', [\App\Http\Controllers\Admin\FinanceController::class, 'export'])
+        ->middleware('role:super_admin,finance_admin')
+        ->name('finance.export');
 
     // Accreditation / QR
     Route::get('accreditation', [\App\Http\Controllers\Admin\AccreditationController::class, 'index'])
@@ -217,6 +244,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','verified', EnsureAdm
     Route::post('certificates/{certificate}/revoke', [\App\Http\Controllers\Admin\CertificatesController::class, 'revoke'])
         ->middleware('role:super_admin')
         ->name('certificates.revoke');
+    Route::get('certificates/export', [\App\Http\Controllers\Admin\CertificatesController::class, 'export'])
+        ->middleware('role:super_admin,finance_admin,registration_admin')
+        ->name('certificates.export');
 
     // Pricing management
     Route::get('pricing', [\App\Http\Controllers\Admin\PricingController::class, 'index'])
@@ -243,8 +273,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','verified', EnsureAdm
 
     // User & role management
     Route::get('users', [\App\Http\Controllers\Admin\UsersController::class, 'index'])
-        ->middleware('role:super_admin')
+        ->middleware('role:super_admin,finance_admin,registration_admin,accreditation_officer,support_agent')
         ->name('users.index');
+    Route::get('users/{user}', [\App\Http\Controllers\Admin\UsersController::class, 'show'])
+        ->middleware('role:super_admin,finance_admin,registration_admin,accreditation_officer,support_agent')
+        ->name('users.show');
+    Route::post('users', [\App\Http\Controllers\Admin\UsersController::class, 'store'])
+        ->middleware('role:super_admin')
+        ->name('users.store');
     Route::put('users/{user}/role', [\App\Http\Controllers\Admin\UsersController::class, 'updateRole'])
         ->middleware('role:super_admin')
         ->name('users.role.update');
@@ -256,6 +292,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','verified', EnsureAdm
     Route::post('settings', [\App\Http\Controllers\Admin\SettingsController::class, 'update'])
         ->middleware('role:super_admin')
         ->name('settings.update');
+
+    // Account settings (profile & password)
+    Route::get('account/profile', [\App\Http\Controllers\Admin\AccountController::class, 'profile'])
+        ->name('account.profile');
+    Route::patch('account/profile', [\App\Http\Controllers\Admin\AccountController::class, 'updateProfile'])
+        ->name('account.profile.update');
+    Route::get('account/password', [\App\Http\Controllers\Admin\AccountController::class, 'password'])
+        ->name('account.password');
+    Route::patch('account/password', [\App\Http\Controllers\Admin\AccountController::class, 'updatePassword'])
+        ->name('account.password.update');
 
     // Sponsors management
     Route::get('sponsors', [\App\Http\Controllers\Admin\SponsorsController::class, 'index'])
@@ -270,4 +316,27 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','verified', EnsureAdm
     Route::delete('sponsors/{sponsor}', [\App\Http\Controllers\Admin\SponsorsController::class, 'destroy'])
         ->middleware('role:super_admin')
         ->name('sponsors.delete');
+
+    // Speakers management
+    Route::get('speakers', [\App\Http\Controllers\Admin\SpeakersController::class, 'index'])
+        ->middleware('role:super_admin')
+        ->name('speakers.index');
+    Route::get('speakers/create', [\App\Http\Controllers\Admin\SpeakersController::class, 'create'])
+        ->middleware('role:super_admin')
+        ->name('speakers.create');
+    Route::post('speakers', [\App\Http\Controllers\Admin\SpeakersController::class, 'store'])
+        ->middleware('role:super_admin')
+        ->name('speakers.store');
+    Route::get('speakers/{speaker}/edit', [\App\Http\Controllers\Admin\SpeakersController::class, 'edit'])
+        ->middleware('role:super_admin')
+        ->name('speakers.edit');
+    Route::put('speakers/{speaker}', [\App\Http\Controllers\Admin\SpeakersController::class, 'update'])
+        ->middleware('role:super_admin')
+        ->name('speakers.update');
+    Route::delete('speakers/{speaker}', [\App\Http\Controllers\Admin\SpeakersController::class, 'destroy'])
+        ->middleware('role:super_admin')
+        ->name('speakers.delete');
+    Route::post('speakers/bulk', [\App\Http\Controllers\Admin\SpeakersController::class, 'bulk'])
+        ->middleware('role:super_admin')
+        ->name('speakers.bulk');
 });

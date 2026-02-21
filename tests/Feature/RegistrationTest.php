@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use App\Mail\RegistrationOtp;
 use App\Models\Registration;
 use App\Models\PricingVersion;
@@ -31,15 +33,17 @@ class RegistrationTest extends TestCase
     public function test_user_can_register_and_receive_otp()
     {
         Mail::fake();
+        Storage::fake('public');
 
         $payload = [
             'name' => 'Test User',
             'email' => 'test+1@example.com',
             'is_member' => false,
             'pricing_item_id' => 1,
+            'profile_photo' => UploadedFile::fake()->image('profile.jpg'),
         ];
 
-        $response = $this->postJson('/register', $payload);
+        $response = $this->post('/register', $payload);
         $response->assertStatus(302); // Redirect to verify page
         $response->assertRedirect();
 
@@ -50,12 +54,14 @@ class RegistrationTest extends TestCase
     public function test_user_can_verify_otp()
     {
         Mail::fake();
+        Storage::fake('public');
 
         $payload = [
             'name' => 'Verify User',
             'email' => 'verify@example.com',
             'is_member' => false,
             'pricing_item_id' => 1,
+            'profile_photo' => UploadedFile::fake()->image('profile.jpg'),
         ];
 
         $response = $this->post('/register', $payload);
@@ -82,12 +88,14 @@ class RegistrationTest extends TestCase
     public function test_user_can_resend_otp()
     {
         Mail::fake();
+        Storage::fake('public');
 
         $payload = [
             'name' => 'Resend User',
             'email' => 'resend@example.com',
             'is_member' => false,
             'pricing_item_id' => 1,
+            'profile_photo' => UploadedFile::fake()->image('profile.jpg'),
         ];
 
         $this->post('/register', $payload)->assertStatus(302);

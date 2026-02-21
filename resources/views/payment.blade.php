@@ -1,8 +1,13 @@
 @extends('layouts.public')
 
-@section('title', 'Complete Payment — NSE 59th AGM & Conference 2026')
+@section('title', 'Complete Payment — NSE 59th AGM & Conference')
 
 @section('content')
+@php
+    $registrationWindowOpen = $registrationWindowOpen ?? \App\Support\EventDates::registrationWindowOpen();
+    $registrationOpenAt = $registrationOpenAt ?? \App\Support\EventDates::registrationOpenAt();
+    $registrationCloseAt = $registrationCloseAt ?? \App\Support\EventDates::registrationCloseAt();
+@endphp
 
 <section class="bg-nse-neutral-50 py-8 sm:py-12" aria-labelledby="payment-heading">
     <div class="max-w-2xl mx-auto px-4 sm:px-6">
@@ -13,6 +18,13 @@
             <h1 id="payment-heading" class="text-2xl sm:text-3xl font-bold text-nse-neutral-900 leading-tight">Complete Your Registration Payment</h1>
             <p class="text-nse-neutral-500 text-sm mt-2">Secure payment processing via Paystack. Your accreditation ticket will be issued immediately upon successful payment.</p>
         </div>
+
+        @if(! $registrationWindowOpen)
+            <div class="mb-6 p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded" role="alert">
+                <h3 class="font-semibold">Payment is currently unavailable</h3>
+                <p class="text-sm mt-1">Configured registration window: {{ $registrationOpenAt->format('M j, Y g:i A') }} to {{ $registrationCloseAt->format('M j, Y g:i A') }}.</p>
+            </div>
+        @endif
 
         {{-- Registration Summary Card --}}
         <div class="bg-white rounded-lg shadow-sm border border-nse-neutral-200 p-6 sm:p-8 mb-6">
@@ -104,6 +116,7 @@
                 <button
                     id="pay-btn"
                     type="submit"
+                    @disabled(! $registrationWindowOpen)
                     class="w-full flex items-center justify-center gap-2 px-6 py-4 bg-nse-green-700 text-white text-base font-semibold rounded-lg hover:bg-nse-green-900 focus:outline-none focus:ring-2 focus:ring-nse-green-700 focus:ring-offset-2 transition-colors duration-150 disabled:bg-nse-neutral-200 disabled:cursor-not-allowed min-h-[52px]"
                 >
                     <span id="btn-text" class="flex items-center gap-2">

@@ -1,11 +1,14 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('content')
+@section('admin_content')
     <div class="p-6 max-w-4xl mx-auto">
-        <h1 class="text-2xl font-bold mb-2">Virtual Stream Settings</h1>
-        <p class="text-sm text-nse-neutral-600 mb-6">Configure platform links for virtual attendance.</p>
+        <x-admin.page-header
+            title="Virtual Stream Settings"
+            subtitle="Configure platform links for virtual attendance."
+        />
 
-        <form method="POST" action="{{ route('admin.stream.update') }}" class="bg-white p-4 rounded border border-nse-neutral-200 grid grid-cols-1 gap-4">
+        <x-admin.panel class="p-4">
+        <form method="POST" action="{{ route('admin.stream.update') }}" class="grid grid-cols-1 gap-4">
             @csrf
             <div>
                 <label class="text-sm text-gray-600">Stream Enabled</label>
@@ -27,12 +30,12 @@
                 <input type="url" name="stream_backup_url" value="{{ $settings['stream_backup_url'] ?? '' }}" class="w-full border rounded px-3 py-2">
             </div>
             <div>
-                <label class="text-sm text-gray-600">Event End (Certificate Release)</label>
-                <input type="datetime-local" name="event_end_at" value="{{ isset($settings['event_end_at']) ? \Carbon\Carbon::parse($settings['event_end_at'])->format('Y-m-d\\TH:i') : '' }}" class="w-full border rounded px-3 py-2">
+                <p class="text-sm text-gray-600">Event dates and certificate release schedule are managed in <a href="{{ route('admin.settings.index') }}" class="text-nse-green-700 underline">System Settings</a>.</p>
             </div>
             <div>
                 <button class="px-4 py-2 bg-nse-green-700 text-white rounded">Save Settings</button>
             </div>
         </form>
+        </x-admin.panel>
     </div>
 @endsection

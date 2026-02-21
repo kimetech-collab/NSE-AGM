@@ -1,8 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Audit Logs')
 
-@section('content')
+@section('admin_content')
 <div class="py-12">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <!-- Header -->
@@ -84,6 +84,7 @@
                     <div>
                         <label for="date_from" class="block text-sm font-medium text-gray-700">Date From</label>
                         <input type="date" name="date_from" id="date_from" value="{{ request('date_from') }}"
+                            data-picker="date"
                             class="mt-1 block w-full rounded-md border gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                     </div>
 
@@ -91,6 +92,7 @@
                     <div>
                         <label for="date_to" class="block text-sm font-medium text-gray-700">Date To</label>
                         <input type="date" name="date_to" id="date_to" value="{{ request('date_to') }}"
+                            data-picker="date"
                             class="mt-1 block w-full rounded-md border gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                     </div>
 

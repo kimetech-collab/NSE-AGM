@@ -18,7 +18,6 @@ class StreamController extends Controller
                 'stream_platform',
                 'stream_primary_url',
                 'stream_backup_url',
-                'event_end_at',
             ])->pluck('value', 'key');
         }
 
@@ -36,11 +35,14 @@ class StreamController extends Controller
             'stream_platform' => 'nullable|string|max:32',
             'stream_primary_url' => 'nullable|url|max:1000',
             'stream_backup_url' => 'nullable|url|max:1000',
-            'event_end_at' => 'nullable|date',
         ]);
 
         foreach ($data as $key => $value) {
-            SystemSetting::updateOrCreate(['key' => $key], ['value' => (string) $value]);
+            SystemSetting::updateOrCreate([
+                'key' => $key,
+            ], [
+                'value' => ($value === null || $value === '') ? null : (string) $value,
+            ]);
         }
 
         return redirect()->route('admin.stream.index')->with('success', 'Stream settings updated.');

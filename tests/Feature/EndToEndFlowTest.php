@@ -8,6 +8,8 @@ use App\Models\PricingVersion;
 use App\Models\PricingItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 class EndToEndFlowTest extends TestCase
 {
@@ -16,6 +18,8 @@ class EndToEndFlowTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        Storage::fake('public');
 
         $pv = PricingVersion::create(['version_name' => 'mvp']);
 
@@ -45,6 +49,7 @@ class EndToEndFlowTest extends TestCase
             'is_member' => true,
             'membership_number' => 'NSE123',
             'pricing_item_id' => 1,
+            'profile_photo' => UploadedFile::fake()->image('profile.jpg'),
         ]);
 
         $response->assertRedirect();
@@ -81,6 +86,7 @@ class EndToEndFlowTest extends TestCase
             'email' => 'bob@example.com',
             'is_member' => false,
             'pricing_item_id' => 2,
+            'profile_photo' => UploadedFile::fake()->image('profile.jpg'),
         ]);
 
         $registration = Registration::where('email', 'bob@example.com')->first();

@@ -4,9 +4,10 @@ namespace App\Services;
 
 use App\Models\Certificate;
 use App\Models\Registration;
-use App\Models\SystemSetting;
+use App\Support\EventDates;
 use Illuminate\Support\Str;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
 class CertificateService
@@ -18,14 +19,7 @@ class CertificateService
 
     public function eventEndAt(): \Carbon\CarbonInterface
     {
-        if (Schema::hasTable('system_settings')) {
-            $setting = SystemSetting::where('key', 'event_end_at')->value('value');
-            if ($setting) {
-                return \Carbon\Carbon::parse($setting);
-            }
-        }
-
-        return \Carbon\Carbon::parse('2026-11-04 16:00:00');
+        return EventDates::get('event_end_at');
     }
 
     public function isEligible(Registration $registration): bool
@@ -71,9 +65,10 @@ class CertificateService
                     'registration_id' => $registration->id,
                     'certificate_id' => $certificateId,
                     'forced' => $force,
+                    'issued_via' => $force ? 'super_admin_manual' : 'automatic_flow',
                 ]);
             } catch (\Throwable $e) {
-                \Log::error('Audit log failed for certificate issue', ['error' => $e->getMessage()]);
+                Log::error('Audit log failed for certificate issue', ['error' => $e->getMessage()]);
             }
         }
 
@@ -98,7 +93,7 @@ class CertificateService
                     'reason' => $reason,
                 ]);
             } catch (\Throwable $e) {
-                \Log::error('Audit log failed for certificate revoke', ['error' => $e->getMessage()]);
+                Log::error('Audit log failed for certificate revoke', ['error' => $e->getMessage()]);
             }
         }
 
@@ -112,13 +107,15 @@ class CertificateService
         return Pdf::loadView('pdf.certificate', [
             'certificate' => $certificate,
             'registration' => $registration,
-        ])->output();
+        ])->setPaper('a4', 'landscape')->output();
     }
 
     protected function generateCertificateId(): string
     {
+        $eventYear = EventDates::get('event_start_at')->format('Y');
+
         do {
-            $code = 'NSE59-2026-' . Str::upper(Str::random(6));
+            $code = 'NSE59-' . $eventYear . '-' . Str::upper(Str::random(6));
         } while (Certificate::where('certificate_id', $code)->exists());
 
         return $code;

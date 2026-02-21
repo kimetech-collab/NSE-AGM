@@ -1,8 +1,15 @@
 @extends('layouts.public')
 
-@section('title', 'Conference Programme — NSE 59th AGM & Conference 2026')
+@section('title', 'Conference Programme — NSE 59th AGM & Conference')
 
 @section('content')
+@php
+    $eventStartAt = \App\Support\EventDates::get('event_start_at');
+    $eventEndAt = \App\Support\EventDates::get('event_end_at');
+    $day2 = $eventStartAt->copy()->addDay();
+    $day3 = $eventStartAt->copy()->addDays(2);
+    $day4 = $eventStartAt->copy()->addDays(3);
+@endphp
 
 {{-- ═══════════════════════════════════════════════════════════════════
      HERO SECTION
@@ -15,7 +22,7 @@
                 59th NSE AGM Conference Programme
             </h1>
             <p class="text-lg text-white/80 leading-relaxed">
-                Four days of keynote sessions, technical tracks, workshops, and networking. November 1–4, 2026 at The Pinnacle Function Centre, Maiduguri.
+                Four days of keynote sessions, technical tracks, workshops, and networking. {{ $eventStartAt->format('F j') }}–{{ $eventEndAt->format('j, Y') }} at The Pinnacle Function Centre, Maiduguri.
             </p>
         </div>
     </div>
@@ -66,7 +73,7 @@
                 >
                     <div class="text-left">
                         <p class="text-sm font-bold text-nse-gold-700 uppercase tracking-wide">Day 1</p>
-                        <p class="text-lg font-bold text-nse-neutral-900">November 1, 2026</p>
+                        <p class="text-lg font-bold text-nse-neutral-900">{{ $eventStartAt->format('F j, Y') }}</p>
                     </div>
                     <svg class="w-5 h-5 text-nse-neutral-600 transition-transform duration-200" :class="{ 'rotate-180': activeDay === 0 }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
                 </button>
@@ -133,7 +140,7 @@
                 >
                     <div class="text-left">
                         <p class="text-sm font-bold text-nse-green-700 uppercase tracking-wide">Day 2</p>
-                        <p class="text-lg font-bold text-nse-neutral-900">November 2, 2026</p>
+                        <p class="text-lg font-bold text-nse-neutral-900">{{ $day2->format('F j, Y') }}</p>
                     </div>
                     <svg class="w-5 h-5 text-nse-neutral-600 transition-transform duration-200" :class="{ 'rotate-180': activeDay === 1 }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
                 </button>
@@ -170,7 +177,7 @@
                 >
                     <div class="text-left">
                         <p class="text-sm font-bold text-nse-gold-700 uppercase tracking-wide">Day 3</p>
-                        <p class="text-lg font-bold text-nse-neutral-900">November 3, 2026</p>
+                        <p class="text-lg font-bold text-nse-neutral-900">{{ $day3->format('F j, Y') }}</p>
                     </div>
                     <svg class="w-5 h-5 text-nse-neutral-600 transition-transform duration-200" :class="{ 'rotate-180': activeDay === 2 }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
                 </button>
@@ -207,7 +214,7 @@
                 >
                     <div class="text-left">
                         <p class="text-sm font-bold text-nse-green-700 uppercase tracking-wide">Day 4</p>
-                        <p class="text-lg font-bold text-nse-neutral-900">November 4, 2026</p>
+                        <p class="text-lg font-bold text-nse-neutral-900">{{ $day4->format('F j, Y') }}</p>
                     </div>
                     <svg class="w-5 h-5 text-nse-neutral-600 transition-transform duration-200" :class="{ 'rotate-180': activeDay === 3 }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
                 </button>

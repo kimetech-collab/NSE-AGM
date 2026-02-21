@@ -1,10 +1,35 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('content')
+@section('admin_content')
     <div class="p-6">
-        <h1 class="text-2xl font-bold mb-4">Finance</h1>
+        <x-admin.page-header
+            title="Finance"
+            subtitle="Review payments and process refunds."
+        />
 
-        <table class="min-w-full bg-white">
+        <x-admin.panel class="p-4 mb-4">
+            <form method="GET" action="{{ route('admin.finance.index') }}" class="grid grid-cols-1 md:grid-cols-5 gap-3">
+                <input type="text" name="q" value="{{ request('q') }}" placeholder="Reference, name, or email" class="border rounded px-3 py-2">
+                <select name="status" class="border rounded px-3 py-2">
+                    <option value="">All statuses</option>
+                    @foreach(['pending','success','failed','refunded'] as $status)
+                        <option value="{{ $status }}" @selected(request('status') === $status)>{{ ucfirst($status) }}</option>
+                    @endforeach
+                </select>
+                <input type="date" name="date_from" value="{{ request('date_from') }}" class="border rounded px-3 py-2">
+                <input type="date" name="date_to" value="{{ request('date_to') }}" class="border rounded px-3 py-2">
+                <div class="flex gap-2">
+                    <button class="px-4 py-2 bg-nse-green-700 text-white rounded" type="submit">Filter</button>
+                    <a href="{{ route('admin.finance.index') }}" class="px-4 py-2 border rounded">Reset</a>
+                </div>
+            </form>
+            <div class="mt-3 flex gap-2">
+                <a href="{{ route('admin.finance.export', array_merge(request()->query(), ['format' => 'csv'])) }}" class="px-3 py-2 border rounded text-sm">Export CSV</a>
+                <a href="{{ route('admin.finance.export', array_merge(request()->query(), ['format' => 'pdf'])) }}" class="px-3 py-2 border rounded text-sm">Export PDF</a>
+            </div>
+        </x-admin.panel>
+
+        <x-admin.table tableClass="min-w-full bg-white">
             <thead>
                 <tr>
                     <th class="px-4 py-2">ID</th>
@@ -32,9 +57,9 @@
                     </tr>
                 @endforeach
             </tbody>
-        </table>
+        </x-admin.table>
 
-        <div class="mt-4">{{ $transactions->links() }}</div>
+        <x-admin.pagination-footer :paginator="$transactions" />
     </div>
 
     <!-- Refund Confirmation Modal -->

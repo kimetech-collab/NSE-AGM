@@ -1,0 +1,599 @@
+# NSE Portal — Developer Documentation
+
+## 1) Project Overview
+NSE Portal is a Laravel-based conference management system for the NSE 59th AGM & International Conference. It supports participant registration, OTP verification, payments, ticketing (QR), accreditation scanning, attendance, certificate issuance, and admin operations (users, finance, audit, settings, stream, sponsors).
+
+Core stack:
+- Laravel (PHP)
+- Blade templating
+- Livewire (settings/profile components)
+- Tailwind-style utility classes
+- DomPDF for PDF generation
+- Mail queue for OTP flows
+- Audit logging across admin and sensitive actions
+
+---
+
+## 2) High-Level Functional Modules
+
+### Public / Participant
+- Registration form + validation
+- OTP email verification and resend flow
+- Payment flow integration
+- Ticket viewing/downloading
+- Registration status tracking
+- Certificate status, preview, download, and verification links
+
+### Admin
+- Dashboard and role-based access
+- Accreditation scanner (camera/manual)
+- Certificates management (list, issue, revoke, export)
+- Users and role management
+- Finance exports
+- Audit logs
+- Settings and stream controls
+
+### Shared / Services
+- `QRService` for ticket token validation and scan logging
+- `CertificateService` for eligibility, issuance, and PDF rendering
+- `RegistrationService` for registration lifecycle
+- `AuditService` for centralized action logging
+
+---
+
+## 3) Major Implementations Completed
+
+## 3.1 Profile Photo System (Admins + Participants)
+Implemented end-to-end profile photo support and required participant photo submission.
+
+### Database
+- Added migration:
+  - `database/migrations/2026_02_20_135656_add_profile_photo_to_users_and_registrations_table.php`
+- New nullable `profile_photo` columns on:
+  - `users`
+  - `registrations`
+
+### Models
+- Updated:
+  - `app/Models/User.php`
+  - `app/Models/Registration.php`
+- Added:
+  - `profile_photo` fillable handling
+  - `profilePhotoUrl()` helper for URL/storage path resolution
+
+### Validation + Controllers
+- Added reusable photo rules in:
+  - `app/Concerns/ProfileValidationRules.php`
+- Updated admin account profile update flow:
+  - `app/Http/Controllers/Admin/AccountController.php`
+  - upload handling + old photo cleanup
+- Registration now requires profile photo:
+  - `app/Http/Requests/RegisterRequest.php`
+  - `required|image|mimes:jpeg,png,jpg|max:2048`
+- Registration storage logic updated:
+  - `app/Http/Controllers/RegistrationController.php`
+
+### UI Coverage
+Photo display integrated across system:
+- Admin account profile page
+- Admin user menu (header + dropdown)
+- Admin users list/details
+- Admin registration details
+- Public ticket view
+- Ticket PDF
+- Certificate PDF
+- Public registration form (required upload)
+
+Storage setup:
+- Uses `public` disk
+- Accessible under `storage/profile-photos/...`
+- `php artisan storage:link` expected
+
+---
+
+## 3.2 Accreditation Enhancements
+Enhanced accreditation scan response and visual feedback.
+
+### API/Service
+- Updated `app/Services/QRService.php`
+- Scan result registration payload now includes:
+  - `id`
+  - `name`
+  - `email`
+  - `is_member`
+  - `membership_number`
+  - `profile_photo_url`
+
+### Admin Scanner UI
+- Updated `resources/views/admin/accreditation/index.blade.php`
+- Scan overlay now shows:
+  - participant profile photo
+  - participant name
+  - membership number (where available)
+  - status messaging for valid/already checked-in/unpaid/refunded/invalid
+
+---
+
+## 3.3 Certificate Access and Admin Preview
+Expanded certificate usability for participants and admins.
+
+### Participant Registration Status
+- Fixed and improved status controller logic:
+  - `app/Http/Controllers/RegistrationController.php`
+- Added proper singular registration loading with certificate relationship
+- Added state vars passed to view:
+  - `registration`
+  - `certificate`
+  - `hasCertificate`
+  - `nextStep`
+
+### Participant Certificate UX
+- Updated `resources/views/registration-status.blade.php`
+- Added:
+  - certificate preview access
+  - direct PDF download button
+  - public verification link
+  - richer issued-certificate card details
+
+### Admin Certificate Preview
+- Updated `resources/views/admin/certificates/index.blade.php`
+- Added `Preview` action for issued certificates with valid token
+- Preview opens participant certificate page in new tab
+
+---
+
+## 3.4 Certificate Redesign + Landscape PDF + Single-Page Fit
+Certificate visuals were redesigned and fixed to avoid page overflow.
+
+### PDF Template
+- Updated `resources/views/pdf/certificate.blade.php`
+- Changes:
+  - landscape-oriented aesthetic layout
+  - improved typography, borders, metadata zone, signature lines
+  - participant photo + membership metadata support
+  - spacing reduced/tuned to prevent overflow
+
+### PDF Rendering
+- Updated `app/Services/CertificateService.php`
+- Explicit paper config:
+  - `setPaper('a4', 'landscape')`
+
+### Single-Page Overflow Fix
+- Tightened page dimensions and flow behavior in PDF template
+- Removed overflow-prone absolute footer positioning
+- Adjusted font sizes/margins to enforce one-page output
+
+### On-Screen Certificate Page Redesign
+- Updated `resources/views/certificate.blade.php`
+- Added certificate-style preview section to mirror PDF design language
+- Kept action controls for download and verification
+
+---
+
+## 3.5 Brand Typography Update (English Gothic)
+Applied English Gothic styling for the phrase “Nigerian Society of Engineers” across key views.
+
+### Global/Public Styling
+- Updated `resources/views/layouts/public.blade.php`
+- Added Google font import:
+  - `UnifrakturCook`
+- Added reusable class:
+  - `.font-english-gothic`
+
+### Applied To
+- Public layout branding and footer text
+- About page occurrences
+- Welcome page occurrence
+- Certificate web view brand label
+- Pricing tooltip descriptions (phrase wrapped in styled span)
+- Certificate PDF brand label using PDF-safe gothic fallback stack
+
+---
+
+## 4) Files Added During Recent Implementation
+- `database/migrations/2026_02_20_135656_add_profile_photo_to_users_and_registrations_table.php`
+- `tests/Feature/AdminCertificatesPreviewTest.php`
+
+(plus updates across controllers/models/views/services/tests listed in sections above)
+
+---
+
+## 5) Testing and Verification
+Project test suite is passing after all changes.
+
+Last verified status:
+- 80 tests passed
+- 235 assertions
+
+Notable test updates included:
+- Registration tests updated for required profile photo uploads
+- End-to-end registration flow updated for photo requirement
+- Admin certificates preview tests added
+- Accreditation enhancements covered by dedicated feature tests
+
+---
+
+## 6) Security / Validation Notes
+- Image uploads restricted by MIME and size limits
+- Role middleware remains in place for admin routes
+- Scan actions continue to be audited through `QRService` + `AuditService`
+- Certificate issuance and revocation actions remain audited
+
+---
+
+## 7) System Settings + Dynamic Event Dates
+Dynamic date configuration is now centralized and editable by super admins.
+
+### Architecture
+- `app/Models/SystemSetting.php` stores key/value pairs for global settings.
+- `app/Support/EventDates.php` is the single source of truth for event timeline:
+  - `registration_open_at`
+  - `early_bird_deadline_at`
+  - `registration_close_at`
+  - `event_start_at`
+  - `event_end_at`
+- `EventDates` exposes:
+  - `get(key)` / `value(key)`
+  - `earlyBirdActive()`
+  - `registrationWindowOpen()`, `registrationOpenAt()`, `registrationCloseAt()`
+
+### Admin UI + Persistence
+- `app/Http/Controllers/Admin/SettingsController.php`
+  - validates all date inputs with ordering constraints
+  - seeds missing date settings using `EventDates::keys()`
+- `resources/views/admin/settings/index.blade.php`
+  - adds configurable date fields under “Event & Certificate”
+
+### Public Rendering
+Dates across public pages, tickets, and PDFs now read from `EventDates`:
+- `resources/views/welcome.blade.php`
+- `resources/views/pricing.blade.php`
+- `resources/views/register.blade.php`
+- `resources/views/contact.blade.php`
+- `resources/views/about.blade.php`
+- `resources/views/programme.blade.php`
+- `resources/views/venue.blade.php`
+- `resources/views/ticket.blade.php`
+- `resources/views/pdf/ticket.blade.php`
+- `resources/views/pdf/certificate.blade.php`
+- `resources/views/verify-certificate.blade.php`
+- `resources/views/layouts/public.blade.php`
+
+---
+
+## 8) Registration Window Enforcement
+Registration is enforced end-to-end using configured `EventDates`.
+
+### Backend
+- `app/Http/Controllers/RegistrationController.php`
+  - `register()` blocks submissions outside the configured window.
+  - `show()` passes window state and bounds to the view.
+
+### UI
+- `resources/views/register.blade.php`
+  - displays “Registration closed” banner with open/close timestamps.
+  - disables submit when window is closed.
+
+---
+
+## 9) Payment Window Enforcement
+Payment initiation is blocked outside registration window to prevent late payments.
+
+### Backend
+- `app/Http/Controllers/PaymentController.php`
+  - `initiate()` returns `422` JSON for AJAX requests when closed.
+  - `show()` passes window state and bounds to the view.
+
+### UI
+- `resources/views/payment.blade.php`
+  - banner displays window status
+  - “Proceed to Secure Checkout” disabled when closed
+
+---
+
+## 10) Admin Dashboard: Registration Window KPI
+The admin dashboard now shows window state and key dates.
+
+### Backend
+- `app/Http/Controllers/Admin/DashboardController.php`
+  - computes:
+    - `registrationPhase` (`upcoming|open|closed`)
+    - `daysToOpen` / `daysToClose`
+    - `registrationOpenAt` / `registrationCloseAt`
+
+### UI
+- `resources/views/admin/dashboard.blade.php`
+  - new card for window status with countdown messaging
+
+---
+
+## 11) Certificate Issuance Audit Enhancements
+Manual admin issuance is explicitly logged for traceability.
+
+### Backend
+- `app/Http/Controllers/Admin/CertificatesController.php`
+  - logs `certificate.issue_requested` with:
+    - `forced`
+    - `already_issued`
+    - `certificate_id`
+- `app/Services/CertificateService.php`
+  - `issued_via` metadata is recorded: `super_admin_manual` or `automatic_flow`
+
+---
+
+## 12) Admin Audit + Reporting (Implemented)
+Operational audit and export tooling was added for finance and certificates.
+
+### Audit Logging
+- `app/Services/AuditService.php` provides consistent logging helpers.
+- `app/Http/Middleware/LogAdminRouteAccess.php` records all `/admin/*` access.
+
+### Exports
+- `app/Http/Controllers/Admin/FinanceController.php` exports CSV/PDF with filters.
+- `app/Http/Controllers/Admin/CertificatesController.php` exports CSV/PDF with filters.
+
+---
+
+## 13) Accreditation Scanner Reliability
+QR parsing and admin scan flows were hardened.
+
+### QR Token Normalization
+- `app/Services/QRService.php` accepts:
+  - raw token
+  - full ticket URL
+  - JSON payload containing `token`
+
+### Admin Scan UX
+- `app/Http/Controllers/Admin/AccreditationController.php` returns JSON for fetch flows.
+- `resources/views/admin/accreditation/index.blade.php` supports offline cache/sync payloads.
+
+---
+
+## 14) Sponsors + Public Pages
+Sponsors now render dynamically and can be managed by admins.
+
+### Backend
+- `app/Http/Controllers/Admin/SponsorsController.php` CRUD + audit logs.
+- `app/Models/Sponsor.php` used by public views.
+- Sponsors can upload logos from local files (stored on `public` disk).
+
+### Public Views
+- `/sponsors` now renders active sponsors from DB.
+- New public pages: `/contact`, `/terms`.
+
+
+---
+
+## 7) Operational Notes
+- Ensure `storage:link` exists in deployments for profile photo visibility
+- PDF rendering is DomPDF-based; typography differences may vary by server font availability
+- For best Gothic consistency in browser views, external font loading (Google Fonts) is currently used
+
+---
+
+## 8) Recommended Next Steps
+1. Add visual regression snapshots for certificate PDF and web preview.
+2. Add dedicated tests for certificate single-page rendering constraints.
+3. Consider bundling a local gothic webfont to avoid CDN dependency.
+4. Add admin-side quick access to certificate preview from registration detail page (if desired).
+
+---
+
+## 9) Quick Reference Paths
+- Registration: `app/Http/Controllers/RegistrationController.php`
+- Certificate generation: `app/Services/CertificateService.php`
+- QR validation/scans: `app/Services/QRService.php`
+- Public certificate page: `resources/views/certificate.blade.php`
+- Certificate PDF template: `resources/views/pdf/certificate.blade.php`
+- Admin accreditation UI: `resources/views/admin/accreditation/index.blade.php`
+- Admin certificates UI: `resources/views/admin/certificates/index.blade.php`
+- Shared public layout: `resources/views/layouts/public.blade.php`
+
+---
+
+## 10) Implementation Details (Technical)
+
+## 10.1 Route + Controller Mapping (Key Flows)
+
+### Public Certificate Flow
+- `GET /certificate` → `CertificateController@show`
+  - Requires `token` query parameter (`ticket_token` value)
+  - Resolves `registration` by `ticket_token`
+  - Resolves certificate state (`issued`, `eligible`, `not eligible`)
+  - Returns `resources/views/certificate.blade.php`
+
+- `POST /certificate/download` → `CertificateController@download`
+  - Validates token input
+  - Resolves registration by token
+  - Fetches existing certificate or generates when allowed
+  - Streams generated PDF response
+
+- `GET /verify/{certificateId}` → `CertificateController@verify`
+  - Public verification endpoint
+  - Displays certificate identity/status
+
+### Registration Status Flow
+- `GET /registration-status` → `RegistrationController@status`
+  - Authenticated participant flow
+  - Finds registration by authenticated email
+  - Eager-loads certificate relation
+  - Computes progress state (`nextStep`)
+  - Returns `resources/views/registration-status.blade.php`
+
+### Admin Accreditation Flow
+- `GET /admin/accreditation` → `Admin\AccreditationController@index`
+  - Displays scanner UI (camera + manual)
+
+- `POST /admin/accreditation/scan` → `Admin\AccreditationController@scan`
+  - Validates token input
+  - Calls `QRService::validateToken`
+  - Calls `QRService::logScan`
+  - Returns JSON for fetch requests
+
+### Admin Certificates Flow
+- `GET /admin/certificates` → `Admin\CertificatesController@index`
+  - Lists certificates with filter/search/pagination
+
+- `POST /admin/certificates/issue` → `Admin\CertificatesController@issue`
+  - Issues or force-issues certificate for registration
+
+- `POST /admin/certificates/{certificate}/revoke` → `Admin\CertificatesController@revoke`
+  - Revokes certificate and records reason metadata
+
+- `GET /admin/certificates/export?format=csv|pdf` → `Admin\CertificatesController@export`
+  - Exports management view dataset
+
+---
+
+## 10.2 Data Model Updates
+
+### `users.profile_photo`
+- Type: string nullable
+- Purpose: admin/user account photo path or URL
+- Used in: account profile update UI, admin menu avatar, user list/profile views
+
+### `registrations.profile_photo`
+- Type: string nullable (required at registration request level)
+- Purpose: participant identity photo for ticket/certificate/accreditation
+- Used in: ticket views, PDF ticket/certificate, admin accreditation overlay
+
+### `registrations.membership_number`
+- Existing member identifier surfaced in:
+  - accreditation scan results (when available)
+  - certificate metadata (when available)
+
+---
+
+## 10.3 Validation and Upload Rules
+
+### Registration (`RegisterRequest`)
+- `profile_photo` is required
+- Rules: `required|image|mimes:jpeg,png,jpg|max:2048`
+
+### Reusable Profile Rules (`ProfileValidationRules`)
+- Method: `profilePhotoRules(bool $required = false)`
+- Supports both required and optional modes
+- Shared to avoid rule duplication across profile contexts
+
+### File Storage Behavior
+- Disk: `public`
+- Directory: `profile-photos`
+- New upload on update deletes old file where applicable (admin profile flow)
+
+---
+
+## 10.4 `QRService` Runtime Contract
+
+### `validateToken(string $token): array`
+Behavior order:
+1. Normalize token input (raw token / URL / JSON payload)
+2. Resolve registration by `ticket_token`
+3. Reject invalid / refunded / unpaid
+4. Detect already-checked-in from `qr_scans`
+5. Return structured response with status and participant payload
+
+Standard response keys:
+- `ok` (bool)
+- `status` (`valid|already_checked_in|unpaid|refunded|invalid`)
+- `message` (for non-success states)
+- `registration` (for resolved participant states)
+- `first_scan_at` (for already_checked_in)
+
+`registration` payload fields:
+- `id`, `name`, `email`, `is_member`, `membership_number`, `profile_photo_url`
+
+### `logScan(...)`
+- Persists scan row in `qr_scans`
+- Adds audit log entry where audit table exists
+- Updates attendance status on valid check-in
+
+---
+
+## 10.5 Certificate Rendering Pipeline
+
+### Generation and Access
+1. Registration becomes eligible by attendance criteria
+2. Certificate generated (automatic/admin/manual access path)
+3. `CertificateService::renderPdf()` loads `pdf.certificate` template
+4. DomPDF renders with `setPaper('a4', 'landscape')`
+
+### Single-Page Stability Controls
+- `@page` explicitly set to A4 landscape
+- Layout uses controlled/fixed height regions
+- Footer kept in normal flow (not absolute at page bottom)
+- Reduced typography and spacing to avoid page spill in DomPDF
+
+---
+
+## 10.6 UI Behavior Details
+
+### Accreditation Overlay
+- Full-screen color-coded status overlay
+- Auto-dismiss and optional camera resume
+- Participant identity block:
+  - photo (if present)
+  - participant name
+  - membership number (if present)
+
+### Registration Status Certificate Card
+- Shows issued-state summary (certificate ID + issue date)
+- Actions:
+  - preview (web certificate view)
+  - download PDF
+  - verification link
+
+### Admin Certificates Table
+- Issued certificates with token show `Preview` action
+- Revoked rows do not show preview action
+
+---
+
+## 10.7 Typography Implementation (English Gothic)
+
+### Browser Views
+- Public layout imports `UnifrakturCook` from Google Fonts
+- Utility class `.font-english-gothic` applied on phrase instances
+
+### PDF View
+- PDF template uses fallback blackletter stack for compatibility:
+  - `'Old English Text MT', 'Blackletter', 'Cloister Black', serif`
+
+Note: DomPDF font support depends on host fonts; exact output may vary by environment.
+
+---
+
+## 10.8 Test Coverage Added/Updated
+
+### Added
+- `tests/Feature/AdminCertificatesPreviewTest.php`
+  - Preview link visible for issued certificate
+  - Preview link hidden for revoked certificate
+
+### Updated Areas
+- Registration feature tests now include uploaded photo
+- End-to-end registration tests updated for required photo flow
+- Accreditation enhancement tests assert participant payload includes photo/membership
+
+Current known baseline:
+- Full suite passes (`80` tests)
+
+---
+
+## 10.9 Deployment / Rollout Checklist
+
+1. Run migrations
+   - `php artisan migrate`
+2. Ensure storage symlink exists
+   - `php artisan storage:link`
+3. Ensure queue/mail configuration is active for OTP delivery
+4. Verify PDF rendering environment supports required fonts
+5. Run test suite post-deploy
+   - `php artisan test`
+6. Smoke test critical flows:
+   - registration with photo
+   - accreditation scan
+   - certificate preview/download
+   - admin certificate preview action
+
+
+Document purpose: consolidated developer reference of implemented features and recent project delivery scope.

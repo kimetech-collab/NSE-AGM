@@ -1,8 +1,12 @@
 @extends('layouts.public')
 
-@section('title', 'FAQs — NSE 59th AGM & Conference 2026')
+@section('title', 'FAQs — NSE 59th AGM & Conference')
 
 @section('content')
+@php
+    $earlyBirdDeadlineAt = \App\Support\EventDates::get('early_bird_deadline_at');
+    $registrationCloseAt = \App\Support\EventDates::get('registration_close_at');
+@endphp
 
 {{-- ═══════════════════════════════════════════════════════════════════
      HERO
@@ -122,7 +126,7 @@
                         <svg class="w-4 h-4 text-nse-neutral-600 transition-transform duration-200 flex-shrink-0" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div x-show="open" x-transition class="px-6 pb-4 bg-nse-neutral-50 border-t border-nse-neutral-200">
-                        <p class="text-sm text-nse-neutral-700 leading-relaxed"><strong>Early bird pricing is available until April 28, 2026.</strong> Your price is locked at your registration date, not payment date. Register before April 28 to secure the early bird rate, then complete payment anytime before October 25, 2026.</p>
+                        <p class="text-sm text-nse-neutral-700 leading-relaxed"><strong>Early bird pricing is available until {{ $earlyBirdDeadlineAt->format('F j, Y') }}.</strong> Your price is locked at your registration date, not payment date. Register before {{ $earlyBirdDeadlineAt->format('F j') }} to secure the early bird rate, then complete payment anytime before {{ $registrationCloseAt->format('F j, Y') }}.</p>
                     </div>
                 </div>
 
@@ -133,7 +137,7 @@
                         <svg class="w-4 h-4 text-nse-neutral-600 transition-transform duration-200 flex-shrink-0" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div x-show="open" x-transition class="px-6 pb-4 bg-nse-neutral-50 border-t border-nse-neutral-200">
-                        <p class="text-sm text-nse-neutral-700 leading-relaxed">Yes. Complete the registration form and verify your email. Your registration is recorded and price locked. You can return to complete payment anytime before the registration close date of October 25, 2026.</p>
+                        <p class="text-sm text-nse-neutral-700 leading-relaxed">Yes. Complete the registration form and verify your email. Your registration is recorded and price locked. You can return to complete payment anytime before the registration close date of {{ $registrationCloseAt->format('F j, Y') }}.</p>
                     </div>
                 </div>
 
