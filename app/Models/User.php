@@ -6,6 +6,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
@@ -61,11 +63,95 @@ class User extends Authenticatable
 
     public function hasRole(string ...$roles): bool
     {
+        if ($this->role === self::ROLE_SUPER_ADMIN) {
+            return true;
+        }
+
         if (in_array($this->role, $roles, true)) {
             return true;
         }
 
-        return $this->role === self::ROLE_SUPER_ADMIN;
+        $assignedRoleSlugs = [];
+        if (Schema::hasTable('roles') && Schema::hasTable('role_user')) {
+            $assignedRoleSlugs = $this->roles()->pluck('slug')->all();
+        }
+        foreach ($roles as $role) {
+            if (in_array($role, $assignedRoleSlugs, true)) {
+                return true;
+            }
+
+            if ($this->canActAsRole($role)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function hasPermission(string ...$permissions): bool
+    {
+        if ($this->role === self::ROLE_SUPER_ADMIN) {
+            return true;
+        }
+
+        if (Schema::hasTable('roles') && Schema::hasTable('role_user')
+            && $this->roles()->where('slug', self::ROLE_SUPER_ADMIN)->exists()) {
+            return true;
+        }
+
+        if (empty($permissions)) {
+            return true;
+        }
+
+        $assigned = $this->permissionSlugs();
+        foreach ($permissions as $permission) {
+            if (! $assigned->contains($permission)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class)->withTimestamps();
+    }
+
+    public function permissionSlugs(): Collection
+    {
+        if (! Schema::hasTable('roles') || ! Schema::hasTable('permissions')
+            || ! Schema::hasTable('role_user') || ! Schema::hasTable('permission_role')) {
+            return collect();
+        }
+
+        return $this->roles()
+            ->with('permissions:id,slug')
+            ->get()
+            ->flatMap(fn (Role $role) => $role->permissions->pluck('slug'))
+            ->unique()
+            ->values();
+    }
+
+    protected function canActAsRole(string $role): bool
+    {
+        $required = static::rolePermissionMap()[$role] ?? null;
+        if (! is_array($required) || empty($required)) {
+            return false;
+        }
+
+        return $this->hasPermission(...$required);
+    }
+
+    public static function rolePermissionMap(): array
+    {
+        return [
+            self::ROLE_SUPER_ADMIN => ['users.manage'],
+            self::ROLE_REGISTRATION_ADMIN => ['registrations.manage'],
+            self::ROLE_FINANCE_ADMIN => ['finance.manage'],
+            self::ROLE_ACCREDITATION_OFFICER => ['accreditation.manage'],
+            self::ROLE_SUPPORT_AGENT => ['registrations.manage'],
+        ];
     }
 
     /**

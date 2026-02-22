@@ -49,5 +49,12 @@ class DatabaseSeeder extends Seeder
             'price_cents' => 1500000, // NGN 15,000
             'currency' => 'NGN',
         ]);
+
+        $this->call([
+            RbacSeeder::class,
+            ProgrammeItemSeeder::class,
+            FaqItemSeeder::class,
+            VenueItemSeeder::class,
+        ]);
     }
 }

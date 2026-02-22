@@ -111,6 +111,14 @@
                             placeholder="Search text..."
                             class="mt-1 block w-full rounded-md border gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                     </div>
+
+                    <div class="flex items-end">
+                        <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                            <input type="hidden" name="exclude_route_access" value="0">
+                            <input type="checkbox" name="exclude_route_access" value="1" {{ request()->has('exclude_route_access') ? (request()->boolean('exclude_route_access') ? 'checked' : '') : 'checked' }} class="rounded border-gray-300">
+                            Exclude route access events
+                        </label>
+                    </div>
                 </div>
 
                 <!-- Action Buttons -->

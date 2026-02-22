@@ -19,6 +19,14 @@ class EnsureUserHasRole
             return $next($request);
         }
 
+        $rolePermissionMap = method_exists($user, 'rolePermissionMap') ? $user::rolePermissionMap() : [];
+        foreach ($roles as $role) {
+            $requiredPermissions = $rolePermissionMap[$role] ?? [];
+            if (! empty($requiredPermissions) && $user->hasPermission(...$requiredPermissions)) {
+                return $next($request);
+            }
+        }
+
         abort(403, 'You do not have permission to access this resource.');
     }
 }

@@ -38,19 +38,13 @@ Route::get('/about', function () {
 })->name('about');
 
 // Programme page
-Route::get('/programme', function () {
-    return view('programme');
-})->name('programme');
+Route::get('/programme', [\App\Http\Controllers\ProgrammeController::class, 'index'])->name('programme');
 
 // Venue page
-Route::get('/venue', function () {
-    return view('venue');
-})->name('venue');
+Route::get('/venue', [\App\Http\Controllers\VenueController::class, 'index'])->name('venue');
 
 // FAQs page
-Route::get('/faqs', function () {
-    return view('faqs');
-})->name('faqs');
+Route::get('/faqs', [\App\Http\Controllers\FaqsController::class, 'index'])->name('faqs');
 
 // Contact page
 Route::get('/contact', function () {
@@ -316,6 +310,80 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','verified', EnsureAdm
     Route::delete('sponsors/{sponsor}', [\App\Http\Controllers\Admin\SponsorsController::class, 'destroy'])
         ->middleware('role:super_admin')
         ->name('sponsors.delete');
+
+    // Programme management
+    Route::get('programme', [\App\Http\Controllers\Admin\ProgrammesController::class, 'index'])
+        ->middleware('role:super_admin')
+        ->name('programme.index');
+    Route::get('programme/create', [\App\Http\Controllers\Admin\ProgrammesController::class, 'create'])
+        ->middleware('role:super_admin')
+        ->name('programme.create');
+    Route::post('programme', [\App\Http\Controllers\Admin\ProgrammesController::class, 'store'])
+        ->middleware('role:super_admin')
+        ->name('programme.store');
+    Route::get('programme/{programmeItem}/edit', [\App\Http\Controllers\Admin\ProgrammesController::class, 'edit'])
+        ->middleware('role:super_admin')
+        ->name('programme.edit');
+    Route::put('programme/{programmeItem}', [\App\Http\Controllers\Admin\ProgrammesController::class, 'update'])
+        ->middleware('role:super_admin')
+        ->name('programme.update');
+    Route::delete('programme/{programmeItem}', [\App\Http\Controllers\Admin\ProgrammesController::class, 'destroy'])
+        ->middleware('role:super_admin')
+        ->name('programme.delete');
+
+    // FAQs management
+    Route::get('faqs', [\App\Http\Controllers\Admin\FaqsController::class, 'index'])
+        ->middleware('role:super_admin')
+        ->name('faqs.index');
+    Route::get('faqs/create', [\App\Http\Controllers\Admin\FaqsController::class, 'create'])
+        ->middleware('role:super_admin')
+        ->name('faqs.create');
+    Route::post('faqs', [\App\Http\Controllers\Admin\FaqsController::class, 'store'])
+        ->middleware('role:super_admin')
+        ->name('faqs.store');
+    Route::get('faqs/{faqItem}/edit', [\App\Http\Controllers\Admin\FaqsController::class, 'edit'])
+        ->middleware('role:super_admin')
+        ->name('faqs.edit');
+    Route::put('faqs/{faqItem}', [\App\Http\Controllers\Admin\FaqsController::class, 'update'])
+        ->middleware('role:super_admin')
+        ->name('faqs.update');
+    Route::delete('faqs/{faqItem}', [\App\Http\Controllers\Admin\FaqsController::class, 'destroy'])
+        ->middleware('role:super_admin')
+        ->name('faqs.delete');
+
+    // Venue management
+    Route::get('venues', [\App\Http\Controllers\Admin\VenuesController::class, 'index'])
+        ->middleware('role:super_admin')
+        ->name('venues.index');
+    Route::get('venues/create', [\App\Http\Controllers\Admin\VenuesController::class, 'create'])
+        ->middleware('role:super_admin')
+        ->name('venues.create');
+    Route::post('venues', [\App\Http\Controllers\Admin\VenuesController::class, 'store'])
+        ->middleware('role:super_admin')
+        ->name('venues.store');
+    Route::get('venues/{venueItem}/edit', [\App\Http\Controllers\Admin\VenuesController::class, 'edit'])
+        ->middleware('role:super_admin')
+        ->name('venues.edit');
+    Route::put('venues/{venueItem}', [\App\Http\Controllers\Admin\VenuesController::class, 'update'])
+        ->middleware('role:super_admin')
+        ->name('venues.update');
+    Route::delete('venues/{venueItem}', [\App\Http\Controllers\Admin\VenuesController::class, 'destroy'])
+        ->middleware('role:super_admin')
+        ->name('venues.delete');
+
+    // Roles and permissions management
+    Route::get('roles', [\App\Http\Controllers\Admin\RolesController::class, 'index'])
+        ->middleware('role:super_admin')
+        ->name('roles.index');
+    Route::post('roles', [\App\Http\Controllers\Admin\RolesController::class, 'store'])
+        ->middleware('role:super_admin')
+        ->name('roles.store');
+    Route::put('roles/{role}', [\App\Http\Controllers\Admin\RolesController::class, 'update'])
+        ->middleware('role:super_admin')
+        ->name('roles.update');
+    Route::delete('roles/{role}', [\App\Http\Controllers\Admin\RolesController::class, 'destroy'])
+        ->middleware('role:super_admin')
+        ->name('roles.delete');
 
     // Speakers management
     Route::get('speakers', [\App\Http\Controllers\Admin\SpeakersController::class, 'index'])

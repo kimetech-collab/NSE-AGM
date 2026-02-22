@@ -8,41 +8,41 @@
         <!-- Page Header -->
         <div class="text-center mb-12">
             <p class="text-nse-neutral-500 text-xs font-semibold uppercase tracking-widest mb-2">Expert Presenters</p>
-            <h1 id="speakers-page-heading" class="text-4xl font-bold text-nse-neutral-900">Our Speakers</h1>
-            <p class="text-base text-nse-neutral-600 mt-4 max-w-2xl mx-auto">
+            <h1 id="speakers-page-heading" class="text-3xl font-bold text-nse-neutral-900">Our Speakers</h1>
+            <p class="text-sm text-nse-neutral-600 mt-3 max-w-2xl mx-auto">
                 Hear from industry leaders, visionary entrepreneurs, and expert professionals who will share their insights and experiences at the NSE 59th AGM & International Conference.
             </p>
         </div>
 
         <!-- Search & Filter -->
         @if($speakers->count() > 0)
-        <div class="mb-12">
-            <div class="flex flex-col sm:flex-row gap-4">
+        <div class="mb-10 bg-nse-neutral-50 border border-nse-neutral-200 rounded-lg p-4">
+            <div class="flex flex-col sm:flex-row gap-3">
                 <div class="flex-1">
                     <input 
                         type="text" 
                         id="speaker-search" 
                         placeholder="Search speakers by name or organization..."
-                        class="w-full px-4 py-2 border border-nse-neutral-300 rounded-lg focus:ring-2 focus:ring-nse-green-500 focus:border-transparent"
+                        class="w-full border border-nse-neutral-300 rounded px-3 py-2 text-sm"
                         aria-label="Search speakers"
                     >
                 </div>
                 <div class="flex gap-2">
                     <button 
                         data-filter="all" 
-                        class="speaker-filter px-4 py-2 rounded-lg font-medium transition-colors border-2 border-nse-green-500 text-nse-green-700 bg-white hover:bg-nse-green-50"
+                        class="speaker-filter px-4 py-2 rounded text-sm font-medium transition-colors border border-nse-green-700 text-white bg-nse-green-700 hover:bg-nse-green-800"
                     >
                         All
                     </button>
                     <button 
                         data-filter="keynote" 
-                        class="speaker-filter px-4 py-2 rounded-lg font-medium transition-colors border-2 border-nse-neutral-300 text-nse-neutral-600 hover:border-nse-green-500 hover:text-nse-green-700"
+                        class="speaker-filter px-4 py-2 rounded text-sm font-medium transition-colors border border-nse-neutral-300 text-nse-neutral-700 hover:border-nse-green-700 hover:text-nse-green-700"
                     >
                         Keynote
                     </button>
                     <button 
                         data-filter="invited" 
-                        class="speaker-filter px-4 py-2 rounded-lg font-medium transition-colors border-2 border-nse-neutral-300 text-nse-neutral-600 hover:border-nse-green-500 hover:text-nse-green-700"
+                        class="speaker-filter px-4 py-2 rounded text-sm font-medium transition-colors border border-nse-neutral-300 text-nse-neutral-700 hover:border-nse-green-700 hover:text-nse-green-700"
                     >
                         Speakers
                     </button>
@@ -61,22 +61,22 @@
                 </h2>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" role="list" aria-label="Keynote speakers list">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" role="list" aria-label="Keynote speakers list">
                 @foreach($keynote_speakers as $speaker)
                     <article 
                         role="listitem" 
-                        class="speaker-card group bg-white border-2 border-nse-green-100 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300"
+                        class="speaker-card bg-white border border-nse-neutral-200 rounded-lg overflow-hidden"
                         data-name="{{ $speaker->full_name }}"
                         data-organization="{{ $speaker->organization }}"
                         data-category="keynote"
                     >
                         <!-- Photo -->
-                        <div class="relative bg-gradient-to-br from-nse-green-50 to-nse-neutral-100 h-72 flex items-center justify-center overflow-hidden">
+                        <div class="relative bg-nse-neutral-50 h-64 flex items-center justify-center overflow-hidden">
                             @if($speaker->photo_url)
                                 <img 
                                     src="{{ $speaker->photo_url }}" 
                                     alt="{{ $speaker->full_name }}" 
-                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                    class="w-full h-full object-cover"
                                 />
                             @else
                                 <div class="flex flex-col items-center justify-center text-nse-neutral-400">
@@ -86,7 +86,7 @@
                                     <span class="text-xs mt-2">No photo</span>
                                 </div>
                             @endif
-                            <div class="absolute top-3 right-3 bg-nse-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                            <div class="absolute top-3 right-3 bg-nse-green-100 text-nse-green-800 px-2.5 py-1 rounded-full text-xs font-semibold">
                                 Keynote
                             </div>
                         </div>
@@ -94,7 +94,7 @@
                         <!-- Content -->
                         <div class="p-6 flex flex-col h-full">
                             <div>
-                                <h3 class="text-xl font-bold text-nse-neutral-900">{{ $speaker->full_name }}</h3>
+                                <h3 class="text-lg font-semibold text-nse-neutral-900">{{ $speaker->full_name }}</h3>
                                 @if($speaker->title)
                                     <p class="text-sm font-semibold text-nse-green-600 mt-1">{{ $speaker->title }}</p>
                                 @endif
@@ -104,7 +104,7 @@
                             </div>
 
                             @if($speaker->bio)
-                                <p class="text-nse-neutral-600 text-sm mt-4 line-clamp-4">{{ $speaker->bio }}</p>
+                                <p class="text-nse-neutral-600 text-sm mt-4 line-clamp-3">{{ $speaker->bio }}</p>
                             @endif
 
                             @if($speaker->expertise_topics && is_array($speaker->expertise_topics) && count($speaker->expertise_topics) > 0)
@@ -185,22 +185,22 @@
                 </h2>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" role="list" aria-label="Invited speakers list">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" role="list" aria-label="Invited speakers list">
                 @foreach($invited_speakers as $speaker)
                     <article 
                         role="listitem" 
-                        class="speaker-card group bg-white border border-nse-neutral-200 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300"
+                        class="speaker-card bg-white border border-nse-neutral-200 rounded-lg overflow-hidden"
                         data-name="{{ $speaker->full_name }}"
                         data-organization="{{ $speaker->organization }}"
                         data-category="invited"
                     >
                         <!-- Photo -->
-                        <div class="relative bg-gradient-to-br from-nse-neutral-50 to-nse-neutral-100 h-72 flex items-center justify-center overflow-hidden">
+                        <div class="relative bg-nse-neutral-50 h-64 flex items-center justify-center overflow-hidden">
                             @if($speaker->photo_url)
                                 <img 
                                     src="{{ $speaker->photo_url }}" 
                                     alt="{{ $speaker->full_name }}" 
-                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                    class="w-full h-full object-cover"
                                 />
                             @else
                                 <div class="flex flex-col items-center justify-center text-nse-neutral-400">
@@ -215,7 +215,7 @@
                         <!-- Content -->
                         <div class="p-6 flex flex-col h-full">
                             <div>
-                                <h3 class="text-xl font-bold text-nse-neutral-900">{{ $speaker->full_name }}</h3>
+                                <h3 class="text-lg font-semibold text-nse-neutral-900">{{ $speaker->full_name }}</h3>
                                 @if($speaker->title)
                                     <p class="text-sm font-semibold text-nse-green-600 mt-1">{{ $speaker->title }}</p>
                                 @endif
@@ -225,7 +225,7 @@
                             </div>
 
                             @if($speaker->bio)
-                                <p class="text-nse-neutral-600 text-sm mt-4 line-clamp-4">{{ $speaker->bio }}</p>
+                                <p class="text-nse-neutral-600 text-sm mt-4 line-clamp-3">{{ $speaker->bio }}</p>
                             @endif
 
                             @if($speaker->expertise_topics && is_array($speaker->expertise_topics) && count($speaker->expertise_topics) > 0)
@@ -298,7 +298,7 @@
 
         <!-- Empty State -->
         @if($speakers->count() === 0)
-        <div class="text-center py-16">
+        <div class="text-center py-12 bg-nse-neutral-50 border border-nse-neutral-200 rounded-lg">
             <svg class="w-16 h-16 text-nse-neutral-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0zM6 20a9 9 0 0118 0v2h5v-2a9 9 0 00-9-9H6a9 9 0 00-9 9v2h5v-2z"/>
             </svg>
@@ -330,10 +330,8 @@
 
                 if (matchesSearch && matchesCategory) {
                     card.style.display = '';
-                    setTimeout(() => card.classList.add('opacity-100'), 0);
                 } else {
                     card.style.display = 'none';
-                    card.classList.remove('opacity-100');
                 }
             });
         }
@@ -347,12 +345,12 @@
         filterButtons.forEach(button => {
             button.addEventListener('click', function() {
                 filterButtons.forEach(btn => {
-                    btn.classList.remove('border-nse-green-500', 'text-nse-green-700', 'bg-nse-green-50');
-                    btn.classList.add('border-nse-neutral-300', 'text-nse-neutral-600');
+                    btn.classList.remove('border-nse-green-700', 'bg-nse-green-700', 'text-white');
+                    btn.classList.add('border-nse-neutral-300', 'text-nse-neutral-700');
                 });
 
-                this.classList.remove('border-nse-neutral-300', 'text-nse-neutral-600');
-                this.classList.add('border-nse-green-500', 'text-nse-green-700', 'bg-nse-green-50');
+                this.classList.remove('border-nse-neutral-300', 'text-nse-neutral-700');
+                this.classList.add('border-nse-green-700', 'bg-nse-green-700', 'text-white');
 
                 activeFilterCategory = this.dataset.filter;
                 filterSpeakers();

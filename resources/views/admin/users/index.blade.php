@@ -61,21 +61,24 @@
                         >
                     </div>
 
-                    <div>
-                        <label for="role" class="block text-xs text-nse-neutral-600 mb-1">Role</label>
-                        <select
-                            id="role"
-                            name="role"
-                            required
-                            class="w-full border border-nse-neutral-300 rounded px-3 py-2"
-                        >
-                            <option value="">Select role...</option>
+                    <div class="md:col-span-1">
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs text-nse-neutral-600">Roles</label>
+                            <div class="flex items-center gap-2">
+                                <button type="button" class="text-xs text-nse-green-700 hover:underline" data-role-action="select-all" data-role-target="create-user-roles">Select all</button>
+                                <button type="button" class="text-xs text-nse-neutral-600 hover:underline" data-role-action="clear-all" data-role-target="create-user-roles">Clear</button>
+                            </div>
+                        </div>
+                        <div id="create-user-roles" class="border border-nse-neutral-300 rounded px-3 py-2 space-y-1.5 max-h-40 overflow-y-auto">
                             @foreach($roles as $value => $label)
                                 @if($value !== 'registrant')
-                                    <option value="{{ $value }}" @selected(old('role') === $value)>{{ $label }}</option>
+                                    <label class="inline-flex items-center gap-2 text-sm text-nse-neutral-700 w-full">
+                                        <input type="checkbox" name="roles[]" value="{{ $value }}" @checked(collect(old('roles', old('role') ? [old('role')] : []))->contains($value)) class="rounded border-nse-neutral-300">
+                                        <span>{{ $label }}</span>
+                                    </label>
                                 @endif
                             @endforeach
-                        </select>
+                        </div>
                     </div>
                 </div>
 
@@ -145,21 +148,46 @@
                             </td>
                             <td class="px-4 py-3">{{ $u->email }}</td>
                             <td class="px-4 py-3">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-nse-green-100 text-nse-green-800">
-                                    {{ $roles[$u->role] ?? $u->role }}
-                                </span>
+                                @php
+                                    $assignedRoles = $u->roles->pluck('slug')->all();
+                                    if (empty($assignedRoles) && !empty($u->role)) {
+                                        $assignedRoles = [$u->role];
+                                    }
+                                @endphp
+                                <div class="flex flex-wrap gap-1.5">
+                                    @foreach($assignedRoles as $roleSlug)
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-nse-green-100 text-nse-green-800">
+                                            {{ $roles[$roleSlug] ?? $roleSlug }}
+                                        </span>
+                                    @endforeach
+                                </div>
                             </td>
                             @if(auth()->user()->hasRole('super_admin'))
                             <td class="px-4 py-3">
-                                <form method="POST" action="{{ route('admin.users.role.update', $u) }}" class="flex gap-2">
+                                <form method="POST" action="{{ route('admin.users.role.update', $u) }}" class="space-y-2">
                                     @csrf
                                     @method('PUT')
-                                    <select name="role" class="border border-nse-neutral-300 rounded px-2 py-1">
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" class="text-[11px] text-nse-green-700 hover:underline" data-role-action="select-all" data-role-target="user-roles-{{ $u->id }}">Select all</button>
+                                        <button type="button" class="text-[11px] text-nse-neutral-600 hover:underline" data-role-action="clear-all" data-role-target="user-roles-{{ $u->id }}">Clear</button>
+                                    </div>
+                                    <div id="user-roles-{{ $u->id }}" class="grid grid-cols-1 gap-1 max-h-32 overflow-y-auto pr-2">
                                         @foreach($roles as $value => $label)
-                                            <option value="{{ $value }}" @selected($u->role === $value)>{{ $label }}</option>
+                                            @if($value !== 'registrant')
+                                                <label class="inline-flex items-center gap-2 text-xs text-nse-neutral-700">
+                                                    <input
+                                                        type="checkbox"
+                                                        name="roles[]"
+                                                        value="{{ $value }}"
+                                                        @checked(in_array($value, $assignedRoles, true))
+                                                        class="rounded border-nse-neutral-300"
+                                                    >
+                                                    <span>{{ $label }}</span>
+                                                </label>
+                                            @endif
                                         @endforeach
-                                    </select>
-                                    <button type="submit" class="px-3 py-1 bg-nse-green-700 text-white rounded">Save</button>
+                                    </div>
+                                    <button type="submit" class="px-3 py-1 bg-nse-green-700 text-white rounded text-xs">Save</button>
                                 </form>
                             </td>
                             @endif
@@ -179,4 +207,26 @@
 
         <x-admin.pagination-footer :paginator="$users" class="" />
     </div>
+
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('[data-role-action]').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    const action = button.getAttribute('data-role-action');
+                    const targetId = button.getAttribute('data-role-target');
+                    const container = document.getElementById(targetId);
+
+                    if (!container) {
+                        return;
+                    }
+
+                    container.querySelectorAll('input[type="checkbox"][name="roles[]"]').forEach(function (checkbox) {
+                        checkbox.checked = action === 'select-all';
+                    });
+                });
+            });
+        });
+    </script>
+    @endpush
 @endsection

@@ -6,11 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class AuditController extends Controller
 {
+    private function shouldExcludeRouteAccess(Request $request): bool
+    {
+        return $request->has('exclude_route_access')
+            ? $request->boolean('exclude_route_access')
+            : true;
+    }
+
     /**
      * Display a listing of audit logs
      */
@@ -27,6 +34,10 @@ class AuditController extends Controller
             // Filter by action
             if ($request->filled('action')) {
                 $query->byAction($request->action);
+            }
+
+            if ($this->shouldExcludeRouteAccess($request)) {
+                $query->where('action', '!=', 'admin.route.accessed');
             }
 
             // Filter by entity type
@@ -89,7 +100,7 @@ class AuditController extends Controller
 
             return view('admin.audit.index', compact('logs', 'actions', 'entityTypes', 'users'));
         } catch (\Exception $e) {
-            \Log::error('Error loading audit logs', ['error' => $e->getMessage()]);
+            Log::error('Error loading audit logs', ['error' => $e->getMessage()]);
             return view('admin.audit.index', [
                 'logs' => collect(),
                 'actions' => collect(),
@@ -131,6 +142,9 @@ class AuditController extends Controller
         }
         if ($request->filled('action')) {
             $query->byAction($request->action);
+        }
+        if ($this->shouldExcludeRouteAccess($request)) {
+            $query->where('action', '!=', 'admin.route.accessed');
         }
         if ($request->filled('entity_type')) {
             $query->where('entity_type', $request->entity_type);

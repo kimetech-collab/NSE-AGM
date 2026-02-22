@@ -20,14 +20,33 @@ class LogAdminRouteAccess
         try {
             $response = $next($request);
         } catch (\Throwable $e) {
-            $this->writeAudit($request, 500, false, $e->getMessage());
+            if ($this->shouldLog($request, 500, false)) {
+                $this->writeAudit($request, 500, false, $e->getMessage());
+            }
             throw $e;
         }
 
         $ok = $response->getStatusCode() < 400;
-        $this->writeAudit($request, $response->getStatusCode(), $ok);
+        if ($this->shouldLog($request, $response->getStatusCode(), $ok)) {
+            $this->writeAudit($request, $response->getStatusCode(), $ok);
+        }
 
         return $response;
+    }
+
+    protected function shouldLog(Request $request, int $statusCode, bool $ok): bool
+    {
+        $routeName = $request->route()?->getName() ?? '';
+
+        if (str_starts_with($routeName, 'admin.audit')) {
+            return false;
+        }
+
+        if (! $ok || $statusCode >= 400) {
+            return true;
+        }
+
+        return in_array($request->method(), ['POST', 'PUT', 'PATCH', 'DELETE'], true);
     }
 
     protected function writeAudit(Request $request, int $statusCode, bool $ok, ?string $error = null): void

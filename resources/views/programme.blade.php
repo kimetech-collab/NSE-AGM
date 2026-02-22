@@ -3,332 +3,111 @@
 @section('title', 'Conference Programme — NSE 59th AGM & Conference')
 
 @section('content')
-@php
-    $eventStartAt = \App\Support\EventDates::get('event_start_at');
-    $eventEndAt = \App\Support\EventDates::get('event_end_at');
-    $day2 = $eventStartAt->copy()->addDay();
-    $day3 = $eventStartAt->copy()->addDays(2);
-    $day4 = $eventStartAt->copy()->addDays(3);
-@endphp
-
-{{-- ═══════════════════════════════════════════════════════════════════
-     HERO SECTION
-═══════════════════════════════════════════════════════════════════ --}}
-<section class="bg-gradient-to-b from-nse-gold-700 to-nse-gold-900 py-16 sm:py-20 text-white" aria-labelledby="programme-hero">
+<section class="bg-white py-16 sm:py-20" aria-labelledby="programme-heading">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-10">
-        <div class="max-w-3xl">
-            <p class="text-white/70 text-sm font-bold uppercase tracking-widest mb-2">Conference Schedule</p>
-            <h1 id="programme-hero" class="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4">
-                59th NSE AGM Conference Programme
-            </h1>
-            <p class="text-lg text-white/80 leading-relaxed">
-                Four days of keynote sessions, technical tracks, workshops, and networking. {{ $eventStartAt->format('F j') }}–{{ $eventEndAt->format('j, Y') }} at The Pinnacle Function Centre, Maiduguri.
+        <div class="text-center mb-10">
+            <p class="text-nse-neutral-500 text-xs font-semibold uppercase tracking-widest mb-2">Conference Schedule</p>
+            <h1 id="programme-heading" class="text-3xl font-bold text-nse-neutral-900">Programme of Events</h1>
+            <p class="text-sm text-nse-neutral-600 mt-3 max-w-2xl mx-auto">
+                Explore daily activities, technical sessions, keynotes, and other conference events.
             </p>
         </div>
-    </div>
-</section>
 
-{{-- ═══════════════════════════════════════════════════════════════════
-     OVERVIEW
-═══════════════════════════════════════════════════════════════════ --}}
-<section class="bg-white py-8 sm:py-10 border-b border-nse-neutral-200">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-10">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div>
-                <p class="text-2xl font-bold text-nse-gold-700">8+</p>
-                <p class="text-xs sm:text-sm text-nse-neutral-600 font-medium mt-1">Technical Tracks</p>
+        @if($programmeItems->count() > 0)
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10 text-center">
+                <div class="bg-nse-neutral-50 border border-nse-neutral-200 rounded-lg p-4">
+                    <p class="text-2xl font-bold text-nse-green-700">{{ $groupedSchedule->count() }}</p>
+                    <p class="text-xs text-nse-neutral-600 mt-1">Schedule Days</p>
+                </div>
+                <div class="bg-nse-neutral-50 border border-nse-neutral-200 rounded-lg p-4">
+                    <p class="text-2xl font-bold text-nse-gold-700">{{ $programmeItems->count() }}</p>
+                    <p class="text-xs text-nse-neutral-600 mt-1">Total Sessions</p>
+                </div>
+                <div class="bg-nse-neutral-50 border border-nse-neutral-200 rounded-lg p-4">
+                    <p class="text-2xl font-bold text-nse-green-700">{{ $programmeItems->where('is_featured', true)->count() }}</p>
+                    <p class="text-xs text-nse-neutral-600 mt-1">Featured Events</p>
+                </div>
+                <div class="bg-nse-neutral-50 border border-nse-neutral-200 rounded-lg p-4">
+                    <p class="text-2xl font-bold text-nse-gold-700">{{ $programmeItems->pluck('track')->filter()->unique()->count() }}</p>
+                    <p class="text-xs text-nse-neutral-600 mt-1">Tracks</p>
+                </div>
             </div>
-            <div>
-                <p class="text-2xl font-bold text-nse-green-700">50+</p>
-                <p class="text-xs sm:text-sm text-nse-neutral-600 font-medium mt-1">Speakers</p>
+
+            <div class="space-y-6" x-data="{ activeDay: 0 }">
+                @foreach($groupedSchedule as $index => $day)
+                    <div class="bg-white rounded-lg border border-nse-neutral-200 overflow-hidden shadow-sm">
+                        <button
+                            @click="activeDay = activeDay === {{ $index }} ? -1 : {{ $index }}"
+                            :aria-expanded="activeDay === {{ $index }}"
+                            class="w-full flex items-center justify-between px-6 py-4 bg-nse-neutral-50 hover:bg-nse-neutral-100 transition-colors"
+                        >
+                            <div class="text-left">
+                                <p class="text-sm font-bold text-nse-green-700 uppercase tracking-wide">Day {{ $index + 1 }}</p>
+                                <p class="text-lg font-bold text-nse-neutral-900">{{ \Illuminate\Support\Carbon::parse($day['date'])->format('F j, Y') }}</p>
+                                <p class="text-xs text-nse-neutral-600 mt-0.5">{{ $day['items']->count() }} event(s)</p>
+                            </div>
+                            <svg class="w-5 h-5 text-nse-neutral-600 transition-transform duration-200" :class="{ 'rotate-180': activeDay === {{ $index }} }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                            </svg>
+                        </button>
+
+                        <div x-show="activeDay === {{ $index }}" x-transition class="px-6 py-6 border-t border-nse-neutral-200 bg-white space-y-4">
+                            @foreach($day['items'] as $item)
+                                <div class="flex gap-4 {{ $loop->last ? '' : 'pb-4 border-b border-nse-neutral-100' }}">
+                                    <div class="text-right shrink-0 w-24">
+                                        <p class="font-mono font-bold text-nse-green-700">{{ $item->start_time }}</p>
+                                        @if($item->end_time)
+                                            <p class="text-xs text-nse-neutral-500">to {{ $item->end_time }}</p>
+                                        @endif
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2 flex-wrap mb-1">
+                                            <p class="font-bold text-nse-neutral-900">{{ $item->title }}</p>
+                                            @if($item->is_featured)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-nse-gold-100 text-nse-gold-800">Featured</span>
+                                            @endif
+                                            @if($item->category)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-nse-neutral-100 text-nse-neutral-700">{{ $item->category }}</span>
+                                            @endif
+                                        </div>
+
+                                        @if($item->description)
+                                            <p class="text-sm text-nse-neutral-700">{{ $item->description }}</p>
+                                        @endif
+
+                                        <div class="mt-2 text-xs text-nse-neutral-600 space-y-0.5">
+                                            @if($item->track)
+                                                <p><span class="font-semibold text-nse-neutral-700">Track:</span> {{ $item->track }}</p>
+                                            @endif
+                                            @if($item->location)
+                                                <p><span class="font-semibold text-nse-neutral-700">Location:</span> {{ $item->location }}</p>
+                                            @endif
+                                            @if($item->speaker_name)
+                                                <p><span class="font-semibold text-nse-neutral-700">Speaker:</span> {{ $item->speaker_name }}</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endforeach
             </div>
-            <div>
-                <p class="text-2xl font-bold text-nse-gold-700">24</p>
-                <p class="text-xs sm:text-sm text-nse-neutral-600 font-medium mt-1">Hours of Content</p>
+        @else
+            <div class="text-center py-12 bg-nse-neutral-50 border border-nse-neutral-200 rounded-lg">
+                <svg class="w-14 h-14 text-nse-neutral-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <h3 class="text-lg font-semibold text-nse-neutral-900 mb-2">Programme will be published soon</h3>
+                <p class="text-sm text-nse-neutral-600">Conference sessions and daily activities will appear here once configured by the admin team.</p>
             </div>
-            <div>
-                <p class="text-2xl font-bold text-nse-green-700">100+</p>
-                <p class="text-xs sm:text-sm text-nse-neutral-600 font-medium mt-1">Sessions</p>
-            </div>
+        @endif
+
+        <div class="mt-10 text-center bg-nse-green-700 text-white rounded-lg p-8">
+            <h2 class="text-xl font-bold mb-2">Ready to participate?</h2>
+            <p class="text-sm text-white/90 mb-4">Register now to access full conference activities and session updates.</p>
+            <a href="{{ route('register') }}" class="inline-flex items-center px-5 py-2 rounded bg-white text-nse-green-700 font-semibold hover:bg-nse-neutral-100">Register</a>
         </div>
     </div>
 </section>
-
-{{-- ═══════════════════════════════════════════════════════════════════
-     DAILY BREAKDOWN
-═══════════════════════════════════════════════════════════════════ --}}
-<section class="bg-nse-neutral-50 py-12 sm:py-14 border-b border-nse-neutral-200" aria-labelledby="daily-schedule">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-10">
-
-        <h2 id="daily-schedule" class="text-2xl font-bold text-nse-neutral-900 mb-10">Daily Schedule</h2>
-
-        <div class="space-y-6" x-data="{ activeDay: 0 }">
-
-            {{-- Day 1 --}}
-            <div class="bg-white rounded-lg border border-nse-neutral-200 overflow-hidden shadow-sm">
-                <button
-                    @click="activeDay = activeDay === 0 ? -1 : 0"
-                    :aria-expanded="activeDay === 0"
-                    class="w-full flex items-center justify-between px-6 py-4 bg-gradient-to-r from-nse-green-50 to-white hover:from-nse-green-100 transition-colors"
-                >
-                    <div class="text-left">
-                        <p class="text-sm font-bold text-nse-gold-700 uppercase tracking-wide">Day 1</p>
-                        <p class="text-lg font-bold text-nse-neutral-900">{{ $eventStartAt->format('F j, Y') }}</p>
-                    </div>
-                    <svg class="w-5 h-5 text-nse-neutral-600 transition-transform duration-200" :class="{ 'rotate-180': activeDay === 0 }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
-                </button>
-                <div x-show="activeDay === 0" x-transition class="px-6 py-6 border-t border-nse-neutral-200 bg-white space-y-4">
-                    <div class="flex gap-4">
-                        <div class="text-right flex-shrink-0">
-                            <p class="font-mono font-bold text-nse-green-700">8:00 AM</p>
-                            <p class="text-xs text-nse-neutral-500">2 hrs</p>
-                        </div>
-                        <div class="flex-1 pb-4 border-b border-nse-neutral-100">
-                            <p class="font-bold text-nse-neutral-900">Registration & Breakfast</p>
-                            <p class="text-xs text-nse-neutral-600 mt-1">Venue entrance · Coffee, refreshments</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-4">
-                        <div class="text-right flex-shrink-0">
-                            <p class="font-mono font-bold text-nse-green-700">10:00 AM</p>
-                            <p class="text-xs text-nse-neutral-500">1.5 hrs</p>
-                        </div>
-                        <div class="flex-1 pb-4 border-b border-nse-neutral-100">
-                            <p class="font-bold text-nse-neutral-900">Opening Ceremony & Keynote</p>
-                            <p class="text-xs text-nse-neutral-600 mt-1">Main Hall · Welcome address, NSE President's remarks</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-4">
-                        <div class="text-right flex-shrink-0">
-                            <p class="font-mono font-bold text-nse-green-700">11:30 AM</p>
-                            <p class="text-xs text-nse-neutral-500">1 hr</p>
-                        </div>
-                        <div class="flex-1 pb-4 border-b border-nse-neutral-100">
-                            <p class="font-bold text-nse-neutral-900">Break & Exhibition</p>
-                            <p class="text-xs text-nse-neutral-600 mt-1">Exhibition floor · Network with exhibitors</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-4">
-                        <div class="text-right flex-shrink-0">
-                            <p class="font-mono font-bold text-nse-green-700">12:30 PM</p>
-                            <p class="text-xs text-nse-neutral-500">1.5 hrs</p>
-                        </div>
-                        <div class="flex-1 pb-4 border-b border-nse-neutral-100">
-                            <p class="font-bold text-nse-neutral-900">Technical Session 1</p>
-                            <p class="text-xs text-nse-neutral-600 mt-1">8+ concurrent tracks · Choose your sessions</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-4">
-                        <div class="text-right flex-shrink-0">
-                            <p class="font-mono font-bold text-nse-green-700">2:00 PM</p>
-                            <p class="text-xs text-nse-neutral-500">1 hr</p>
-                        </div>
-                        <div class="flex-1">
-                            <p class="font-bold text-nse-neutral-900">Lunch & Networking</p>
-                            <p class="text-xs text-nse-neutral-600 mt-1">Main dining area</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Day 2 --}}
-            <div class="bg-white rounded-lg border border-nse-neutral-200 overflow-hidden shadow-sm">
-                <button
-                    @click="activeDay = activeDay === 1 ? -1 : 1"
-                    :aria-expanded="activeDay === 1"
-                    class="w-full flex items-center justify-between px-6 py-4 bg-gradient-to-r from-nse-gold-50 to-white hover:from-nse-gold-100 transition-colors"
-                >
-                    <div class="text-left">
-                        <p class="text-sm font-bold text-nse-green-700 uppercase tracking-wide">Day 2</p>
-                        <p class="text-lg font-bold text-nse-neutral-900">{{ $day2->format('F j, Y') }}</p>
-                    </div>
-                    <svg class="w-5 h-5 text-nse-neutral-600 transition-transform duration-200" :class="{ 'rotate-180': activeDay === 1 }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
-                </button>
-                <div x-show="activeDay === 1" x-transition class="px-6 py-6 border-t border-nse-neutral-200 bg-white space-y-4">
-                    <div class="flex gap-4">
-                        <div class="text-right flex-shrink-0">
-                            <p class="font-mono font-bold text-nse-gold-700">8:30 AM</p>
-                            <p class="text-xs text-nse-neutral-500">2 hrs</p>
-                        </div>
-                        <div class="flex-1 pb-4 border-b border-nse-neutral-100">
-                            <p class="font-bold text-nse-neutral-900">Keynote 2: Digital Transformation</p>
-                            <p class="text-xs text-nse-neutral-600 mt-1">Main Hall · International speaker on AI & smart infrastructure</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-4">
-                        <div class="text-right flex-shrink-0">
-                            <p class="font-mono font-bold text-nse-gold-700">10:30 AM</p>
-                            <p class="text-xs text-nse-neutral-500">3 hrs</p>
-                        </div>
-                        <div class="flex-1">
-                            <p class="font-bold text-nse-neutral-900">Technical Sessions 2 & 3</p>
-                            <p class="text-xs text-nse-neutral-600 mt-1">8+ concurrent tracks throughout day</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Day 3 --}}
-            <div class="bg-white rounded-lg border border-nse-neutral-200 overflow-hidden shadow-sm">
-                <button
-                    @click="activeDay = activeDay === 2 ? -1 : 2"
-                    :aria-expanded="activeDay === 2"
-                    class="w-full flex items-center justify-between px-6 py-4 bg-gradient-to-r from-nse-green-50 to-white hover:from-nse-green-100 transition-colors"
-                >
-                    <div class="text-left">
-                        <p class="text-sm font-bold text-nse-gold-700 uppercase tracking-wide">Day 3</p>
-                        <p class="text-lg font-bold text-nse-neutral-900">{{ $day3->format('F j, Y') }}</p>
-                    </div>
-                    <svg class="w-5 h-5 text-nse-neutral-600 transition-transform duration-200" :class="{ 'rotate-180': activeDay === 2 }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
-                </button>
-                <div x-show="activeDay === 2" x-transition class="px-6 py-6 border-t border-nse-neutral-200 bg-white space-y-4">
-                    <div class="flex gap-4">
-                        <div class="text-right flex-shrink-0">
-                            <p class="font-mono font-bold text-nse-green-700">8:30 AM</p>
-                            <p class="text-xs text-nse-neutral-500">1.5 hrs</p>
-                        </div>
-                        <div class="flex-1 pb-4 border-b border-nse-neutral-100">
-                            <p class="font-bold text-nse-neutral-900">Keynote 3: Climate & Green Engineering</p>
-                            <p class="text-xs text-nse-neutral-600 mt-1">Main Hall · Sustainability solutions for Africa</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-4">
-                        <div class="text-right flex-shrink-0">
-                            <p class="font-mono font-bold text-nse-green-700">7:00 PM</p>
-                            <p class="text-xs text-nse-neutral-500">2 hrs</p>
-                        </div>
-                        <div class="flex-1">
-                            <p class="font-bold text-nse-neutral-900">Gala Dinner & Awards Ceremony</p>
-                            <p class="text-xs text-nse-neutral-600 mt-1">Banquet hall · Industry awards, networking</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Day 4 --}}
-            <div class="bg-white rounded-lg border border-nse-neutral-200 overflow-hidden shadow-sm">
-                <button
-                    @click="activeDay = activeDay === 3 ? -1 : 3"
-                    :aria-expanded="activeDay === 3"
-                    class="w-full flex items-center justify-between px-6 py-4 bg-gradient-to-r from-nse-gold-50 to-white hover:from-nse-gold-100 transition-colors"
-                >
-                    <div class="text-left">
-                        <p class="text-sm font-bold text-nse-green-700 uppercase tracking-wide">Day 4</p>
-                        <p class="text-lg font-bold text-nse-neutral-900">{{ $day4->format('F j, Y') }}</p>
-                    </div>
-                    <svg class="w-5 h-5 text-nse-neutral-600 transition-transform duration-200" :class="{ 'rotate-180': activeDay === 3 }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
-                </button>
-                <div x-show="activeDay === 3" x-transition class="px-6 py-6 border-t border-nse-neutral-200 bg-white space-y-4">
-                    <div class="flex gap-4">
-                        <div class="text-right flex-shrink-0">
-                            <p class="font-mono font-bold text-nse-gold-700">8:30 AM</p>
-                            <p class="text-xs text-nse-neutral-500">1 hr</p>
-                        </div>
-                        <div class="flex-1 pb-4 border-b border-nse-neutral-100">
-                            <p class="font-bold text-nse-neutral-900">Closing Keynote: The Future of Engineering</p>
-                            <p class="text-xs text-nse-neutral-600 mt-1">Main Hall · Forward-looking address</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-4">
-                        <div class="text-right flex-shrink-0">
-                            <p class="font-mono font-bold text-nse-gold-700">10:00 AM</p>
-                            <p class="text-xs text-nse-neutral-500">1 hr</p>
-                        </div>
-                        <div class="flex-1">
-                            <p class="font-bold text-nse-neutral-900">Closing Ceremony & Farewell</p>
-                            <p class="text-xs text-nse-neutral-600 mt-1">Certificate presentation · Announcements for 60th AGM</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <p class="mt-8 text-sm text-nse-neutral-600 text-center border-t border-nse-neutral-200 pt-6">
-            Detailed session descriptions, speaker bios, and room assignments will be available to registered participants 2 weeks before the conference.
-        </p>
-
-    </div>
-</section>
-
-{{-- ═══════════════════════════════════════════════════════════════════
-     TECHNICAL TRACKS
-═══════════════════════════════════════════════════════════════════ --}}
-<section class="bg-white py-12 sm:py-14 border-b border-nse-neutral-200" aria-labelledby="tracks">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-10">
-
-        <h2 id="tracks" class="text-2xl font-bold text-nse-neutral-900 mb-8">Technical Tracks</h2>
-        <p class="text-nse-neutral-700 mb-8 max-w-3xl">Choose from 8+ concurrent technical tracks covering all engineering disciplines and emerging specialties.</p>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            @foreach([
-                [
-                    'name' => 'Civil & Structural Engineering',
-                    'icon' => '🏗️',
-                    'topics' => 'Infrastructure, Buildings, Bridges, Transportation',
-                ],
-                [
-                    'name' => 'Mechanical & Manufacturing',
-                    'icon' => '⚙️',
-                    'topics' => 'Automotive, Industry 4.0, Robotics',
-                ],
-                [
-                    'name' => 'Electrical & Energy',
-                    'icon' => '⚡',
-                    'topics' => 'Power systems, Renewables, Smart grids',
-                ],
-                [
-                    'name' => 'Petroleum & Chemical',
-                    'icon' => '🔬',
-                    'topics' => 'Oil & gas, Process engineering, Safety',
-                ],
-                [
-                    'name' => 'Software & ICT',
-                    'icon' => '💻',
-                    'topics' => 'AI, Cybersecurity, Digital infrastructure',
-                ],
-                [
-                    'name' => 'Environmental & Water',
-                    'icon' => '💧',
-                    'topics' => 'Sustainability, Water treatment, Climate',
-                ],
-                [
-                    'name' => 'Emerging Technologies',
-                    'icon' => '🚀',
-                    'topics' => 'IoT, Blockchain, Space technology',
-                ],
-                [
-                    'name' => 'Professional Practice',
-                    'icon' => '📋',
-                    'topics' => 'Ethics, Standards, Governance',
-                ],
-            ] as $track)
-            <div class="bg-nse-neutral-50 rounded-lg p-6 border border-nse-neutral-200 hover:shadow-md transition-shadow">
-                <p class="text-3xl mb-3">{{ $track['icon'] }}</p>
-                <h3 class="font-bold text-nse-neutral-900 mb-2">{{ $track['name'] }}</h3>
-                <p class="text-xs text-nse-neutral-600">{{ $track['topics'] }}</p>
-            </div>
-            @endforeach
-        </div>
-
-    </div>
-</section>
-
-{{-- ═══════════════════════════════════════════════════════════════════
-     CTA
-═══════════════════════════════════════════════════════════════════ --}}
-<section class="bg-nse-green-700 py-12 sm:py-14 text-center" aria-label="Registration call to action">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-10">
-        <h2 class="text-2xl sm:text-3xl font-bold text-white mb-3">Register to Attend</h2>
-        <p class="text-white/80 text-base mb-8">Secure your place at the 59th NSE AGM and access all programming.</p>
-        <a
-            href="{{ route('register') }}"
-            class="inline-flex items-center justify-center px-8 py-3.5 bg-white text-nse-green-700 text-base font-semibold rounded-md hover:bg-nse-green-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-nse-green-700 transition-colors duration-150"
-        >
-            Register Now
-            <svg class="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-        </a>
-    </div>
-</section>
-
 @endsection

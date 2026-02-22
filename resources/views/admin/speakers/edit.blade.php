@@ -1,20 +1,20 @@
 @extends('layouts.admin')
 
 @section('admin_content')
-    <div class="py-8 space-y-6">
+    <div class="p-6 space-y-6">
         <x-admin.page-header
             title="Edit Speaker"
             subtitle="Update speaker profile for {{ $speaker->full_name }}."
         />
 
         <x-admin.panel class="p-6">
-            <form method="POST" action="{{ route('admin.speakers.update', $speaker) }}" enctype="multipart/form-data" class="space-y-8">
+            <form method="POST" action="{{ route('admin.speakers.update', $speaker) }}" enctype="multipart/form-data" class="space-y-6">
                 @csrf
                 @method('PUT')
 
                 <!-- Basic Information -->
-                <fieldset>
-                    <legend class="text-lg font-semibold text-nse-neutral-900 mb-4">Basic Information</legend>
+                <fieldset class="border border-nse-neutral-200 rounded-lg p-4 md:p-5">
+                    <legend class="text-base font-semibold text-nse-neutral-900 px-2">Basic Information</legend>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-nse-neutral-700 mb-1">First Name *</label>
@@ -89,8 +89,8 @@
                 </fieldset>
 
                 <!-- Contact Information -->
-                <fieldset>
-                    <legend class="text-lg font-semibold text-nse-neutral-900 mb-4">Contact Information</legend>
+                <fieldset class="border border-nse-neutral-200 rounded-lg p-4 md:p-5">
+                    <legend class="text-base font-semibold text-nse-neutral-900 px-2">Contact Information</legend>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-nse-neutral-700 mb-1">Email</label>
@@ -121,8 +121,8 @@
                 </fieldset>
 
                 <!-- Photo & Media -->
-                <fieldset>
-                    <legend class="text-lg font-semibold text-nse-neutral-900 mb-4">Photo & Media</legend>
+                <fieldset class="border border-nse-neutral-200 rounded-lg p-4 md:p-5">
+                    <legend class="text-base font-semibold text-nse-neutral-900 px-2">Photo & Media</legend>
                     <div class="space-y-4">
                         @if($speaker->photo_url)
                             <div>
@@ -162,8 +162,8 @@
                 </fieldset>
 
                 <!-- Social Links -->
-                <fieldset>
-                    <legend class="text-lg font-semibold text-nse-neutral-900 mb-4">Social Links</legend>
+                <fieldset class="border border-nse-neutral-200 rounded-lg p-4 md:p-5">
+                    <legend class="text-base font-semibold text-nse-neutral-900 px-2">Social Links</legend>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-nse-neutral-700 mb-1">Website</label>
@@ -210,8 +210,8 @@
                 </fieldset>
 
                 <!-- Expertise & Session -->
-                <fieldset>
-                    <legend class="text-lg font-semibold text-nse-neutral-900 mb-4">Expertise & Session</legend>
+                <fieldset class="border border-nse-neutral-200 rounded-lg p-4 md:p-5">
+                    <legend class="text-base font-semibold text-nse-neutral-900 px-2">Expertise & Session</legend>
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-nse-neutral-700 mb-1">Expertise Topics</label>
@@ -272,8 +272,8 @@
                 </fieldset>
 
                 <!-- Settings -->
-                <fieldset>
-                    <legend class="text-lg font-semibold text-nse-neutral-900 mb-4">Settings</legend>
+                <fieldset class="border border-nse-neutral-200 rounded-lg p-4 md:p-5">
+                    <legend class="text-base font-semibold text-nse-neutral-900 px-2">Settings</legend>
                     <div class="space-y-3">
                         <label class="flex items-center gap-3">
                             <input 
@@ -300,8 +300,8 @@
                 </fieldset>
 
                 <!-- Sort Order -->
-                <fieldset>
-                    <legend class="text-lg font-semibold text-nse-neutral-900 mb-4">Display Order</legend>
+                <fieldset class="border border-nse-neutral-200 rounded-lg p-4 md:p-5">
+                    <legend class="text-base font-semibold text-nse-neutral-900 px-2">Display Order</legend>
                     <div>
                         <label class="block text-sm font-medium text-nse-neutral-700 mb-1">Sort Order</label>
                         <input 
@@ -323,13 +323,13 @@
                 <div class="flex items-center gap-3 pt-6 border-t border-nse-neutral-200">
                     <button 
                         type="submit" 
-                        class="px-6 py-2 bg-nse-green-700 text-white rounded font-medium hover:bg-nse-green-800"
+                        class="px-5 py-2 bg-nse-green-700 text-white text-sm rounded font-medium hover:bg-nse-green-800"
                     >
                         Save Changes
                     </button>
                     <a 
                         href="{{ route('admin.speakers.index') }}" 
-                        class="px-6 py-2 border border-nse-neutral-300 text-nse-neutral-700 rounded font-medium hover:bg-nse-neutral-50"
+                        class="px-5 py-2 border border-nse-neutral-300 text-nse-neutral-700 text-sm rounded font-medium hover:bg-nse-neutral-50"
                     >
                         Cancel
                     </a>
